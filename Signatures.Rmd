@@ -1,0 +1,468 @@
+---
+title: "Signature alignement"
+output: html_document
+date: "2024-01-29"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+```{r cars}
+library(ggplot2)
+library(reshape2)
+library(seqinr)
+library(tidyverse)
+library(gridExtra)
+
+GENE = "ENSG00000107643"
+# Fonction pour lire un fichier d'alignement FASTAs
+readAli <- function(chain) {
+  ali <- as.matrix.alignment(read.alignment(chain, format = "FASTA"))
+  print(dim(ali))
+  return(ali)
+}
+
+# Chemin du répertoire contenant les fichiers FASTA
+file_path <- paste0("/Users/louiscarrel/Documents/Alignement_Project/",GENE,"/New_alignement_biga3m/")
+file_list <- list.files(path = file_path, pattern = "\\.fasta$", full.names = TRUE)
+
+# Lecture des fichiers d'alignement
+ali_can<- readAli(paste0(file_path, "msa_s_exon_17_0.fasta"))
+
+ali_alt1 <- readAli(paste0(file_path, "msa_s_exon_17_1.fasta"))
+ali_alt2 <- readAli(paste0(file_path, "msa_s_exon_17_2.fasta"))
+
+ali_alt <- cbind(ali_alt1,ali_alt2)
+# if MAPK8 cbind 17_1 and 17_2
+
+# Fonction pour regrouper les lettres spécifiées par ligne
+groupSimilarLetters <- function(matrice) {
+  # Liste des groupes de lettres à considérer comme similaires
+  similar_groups <- list(c("i", "m", "v", "l"), c("f", "w", "y"), "g", "p", c("c", "a", "s", "t"), c("n", "h", "q", "e", "d"), c("r", "k"))
+  
+  # Appliquer la transformation pour chaque groupe
+  for (group in similar_groups) {
+    # Remplacer toutes les lettres du groupe par la première lettre du groupe
+    for (letter in group[-1]) {
+      matrice[matrice %in% letter] <- group[1]
+    }
+  }
+  
+  return(matrice)
+}
+
+# Appliquer la transformation aux matrices
+ali_can_red <- groupSimilarLetters(ali_can)
+ali_alt_red <- groupSimilarLetters(ali_alt)
+
+ 
+detectSignature <- function(matrice) {
+  signature_alpha <- matrice[, 16] == "h" & matrice[, 23] == "r" & matrice[, 13] == "m" & matrice[, 14] == "v" & matrice[, 17] == "k"& matrice[, 19] == "l" & matrice[, 21] == "p"
+  signature_beta <- matrice[, 16] == "g" & matrice[, 23] == "t"& matrice[, 11] == "g"& matrice[, 15] == "k"& matrice[, 18] == "v"
+  return(list(alpha = signature_alpha, beta = signature_beta))
+}
+
+detectSignature_red <- function(matrice) {
+  signature_alpha <- matrice[, 16] == "n" & matrice[, 23] == "r" & matrice[, 13] == "i" & matrice[, 14] == "i" & matrice[, 17] == "r"& matrice[, 19] == "i" & matrice[, 21] == "p"
+  signature_beta <- matrice[, 16] == "g" & matrice[, 23] == "c"& matrice[, 11] == "g"& matrice[, 15] == "r"& matrice[, 18] == "i"
+  return(list(alpha = signature_alpha, beta = signature_beta))
+}
+
+# Fonction pour compter le nombre de TRUE dans une liste de signatures
+countTrue <- function(signature_list) {
+  return(sum(unlist(signature_list)))
+}
+
+detectSignature_red <- function(matrice) {
+  signature_alpha <- matrice[, 16] == "n" & matrice[, 23] == "r" & matrice[, 13] == "i" & matrice[, 14] == "i" & matrice[, 17] == "r"& matrice[, 19] == "i" & matrice[, 21] == "p"
+  signature_beta <- matrice[, 16] == "g" & matrice[, 23] == "c"& matrice[, 11] == "g"& matrice[, 15] == "r"& matrice[, 18] == "i"
+  return(list(alpha = signature_alpha, beta = signature_beta))
+}
+
+calculateScores_red <- function(matrice) {
+  num_rows <- nrow(matrice)
+  scores_alpha <- numeric(num_rows)
+  scores_beta <- numeric(num_rows)
+  
+  for (i in 1:num_rows) {
+    score_alpha <- sum(matrice[i, c(16, 23, 13, 14, 17, 19, 21)] == c("n", "r", "i", "i", "r", "i", "p"))
+    score_beta <- sum(matrice[i, c(16, 23, 11, 15, 18)] == c("g", "c", "g", "r", "i"))
+    
+    scores_alpha[i] <- score_alpha / 7  # Diviser par le nombre de positions dans la signature alpha
+    scores_beta[i] <- score_beta / 5    # Diviser par le nombre de positions dans la signature beta
+  }
+  
+  result_df <- data.frame(
+    Ligne = rownames(matrice),
+    alpha = scores_alpha,
+    beta = scores_beta
+  )
+  
+  return(result_df)
+}
+
+calculateScores<- function(matrice) {
+  num_rows <- nrow(matrice)
+  scores_alpha <- numeric(num_rows)
+  scores_beta <- numeric(num_rows)
+  
+  for (i in 1:num_rows) {
+    score_alpha <- sum(matrice[i, c(16, 23, 13, 14, 17, 19, 21)] == c("h", "r", "m", "v", "k", "l", "p"))
+    score_beta <- sum(matrice[i, c(16, 23, 11, 15, 18)] == c("g", "t", "g", "k", "v"))
+    
+    scores_alpha[i] <- score_alpha / 7  # Diviser par le nombre de positions dans la signature alpha
+    scores_beta[i] <- score_beta / 5    # Diviser par le nombre de positions dans la signature beta
+  }
+  
+  result_df <- data.frame(
+    Ligne = rownames(matrice),
+    alpha = scores_alpha,
+    beta = scores_beta
+  )
+  
+  return(result_df)
+}
+
+
+creer_matrices_position_red <- function(matrice) {
+  alpha <- matrix(FALSE, nrow = nrow(matrice), ncol = 7)
+  beta <- matrix(FALSE, nrow = nrow(matrice), ncol = 5)
+
+  # Matrice Alpha
+
+  alpha[, 1] <- matrice[, 13] == "i"
+  alpha[, 2] <- matrice[, 14] == "i"
+  alpha[, 3] <- matrice[, 16] == "n"
+  alpha[, 4] <- matrice[, 17] == "r"
+  alpha[, 5] <- matrice[, 19] == "i"
+  alpha[, 6] <- matrice[, 21] == "p"
+  alpha[, 7] <- matrice[, 23] == "r"
+
+  # Matrice Beta
+  
+  
+  beta[, 1] <- matrice[, 11] == "g"
+  beta[, 2] <- matrice[, 15] == "r"
+  beta[, 3] <- matrice[, 16] == "g"
+  beta[, 4] <- matrice[, 18] == "i"
+  beta[, 5] <- matrice[, 23] == "c"
+
+  result <- data.frame(alpha = alpha, beta = beta)
+  
+  # Ajout des noms de lignes en évitant les conflits
+  rownames(result) <- make.unique(rownames(matrice))
+
+  return(result)
+}
+
+
+creer_matrices_position <- function(matrice) {
+  alpha <- matrix(FALSE, nrow = nrow(matrice), ncol = 7)
+  beta <- matrix(FALSE, nrow = nrow(matrice), ncol = 5)
+
+  # Matrice Alpha
+
+  alpha[, 1] <- matrice[, 13] == "m"
+  alpha[, 2] <- matrice[, 14] == "v"
+  alpha[, 3] <- matrice[, 16] == "h"
+  alpha[, 4] <- matrice[, 17] == "k"
+  alpha[, 5] <- matrice[, 19] == "l"
+  alpha[, 6] <- matrice[, 21] == "p"
+  alpha[, 7] <- matrice[, 23] == "r"
+
+  # Matrice Beta
+  
+  
+  beta[, 1] <- matrice[, 11] == "g"
+  beta[, 2] <- matrice[, 15] == "k"
+  beta[, 3] <- matrice[, 16] == "g"
+  beta[, 4] <- matrice[, 18] == "v"
+  beta[, 5] <- matrice[, 23] == "t"
+
+  result <- data.frame(alpha = alpha, beta = beta)
+  
+  # Ajout des noms de lignes en évitant les conflits
+  rownames(result) <- make.unique(rownames(matrice))
+
+  return(result)
+}
+
+
+```
+
+## Signature bin 
+
+### Full
+```{r pressure, echo=FALSE}
+
+# Détecter la signature "carré" sur la matrice alt
+signatures_alt <- detectSignature(ali_alt)
+signatures_can <- detectSignature(ali_can)
+
+
+# Compter le nombre de "carré" dans les matrices
+count_alt_alpha <- countTrue(signatures_alt$alpha)
+count_alt_beta <- countTrue(signatures_alt$beta)
+
+count_can_alpha <- countTrue(signatures_can$alpha)
+count_can_beta <- countTrue(signatures_can$beta)
+
+# Créer un dataframe pour les deux plots
+data <- data.frame(
+  Signature = c("Alpha", "Beta", "Alpha", "Beta"),
+  Count = c(count_alt_alpha, count_alt_beta, count_can_alpha, count_can_beta),
+  Type = rep(c("alt", "can"), each = 2)
+)
+
+# Créer les plots côte à côte avec ggplot2
+a = ggplot(data, aes(x = Signature, y = Count, fill = Type)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Occurrences des signatures",
+       x = "Type de signature",
+       y = "Nombre d'occurrences") +
+  facet_grid(~Type, scales = "free", space = "free") +
+  scale_fill_manual(values = c("alt" = "blue", "can" = "red")) +
+  theme_minimal()
+a
+```
+
+
+### Reduced 
+```{r red_bin, echo=FALSE}
+
+# Détecter la signature "carré" sur la matrice alt
+signatures_alt_red <- detectSignature_red(ali_alt_red)
+signatures_can_red <- detectSignature_red(ali_can_red)
+
+
+# Compter le nombre de "carré" dans les matrices
+count_alt_alpha_red <- countTrue(signatures_alt_red$alpha)
+count_alt_beta_red <- countTrue(signatures_alt_red$beta)
+
+count_can_alpha_red <- countTrue(signatures_can_red$alpha)
+count_can_beta_red <- countTrue(signatures_can_red$beta)
+
+# Créer un dataframe pour les deux plots
+data_red <- data.frame(
+  Signature = c("Alpha", "Beta", "Alpha", "Beta"),
+  Count = c(count_alt_alpha_red, count_alt_beta_red, count_can_alpha_red, count_can_beta_red),
+  Type = rep(c("alt", "can"), each = 2)
+)
+
+# Créer les plots côte à côte avec ggplot2
+ B = ggplot(data_red, aes(x = Signature, y = Count, fill = Type)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Occurrences des signatures (Alphabet réduit)",
+       x = "Type de signature",
+       y = "Nombre d'occurrences") +
+  facet_grid(~Type, scales = "free", space = "free") +
+  scale_fill_manual(values = c("alt" = "blue", "can" = "red")) +
+  theme_minimal()
+ 
+ B
+
+```
+## ALPHABET SCORES {.tabset .tabset-fade}
+
+### Reduced
+
+```{r red_scores, echo=FALSE}
+scores_ali_can_red <- calculateScores_red(ali_can_red)
+scores_ali_alt_red <- calculateScores_red(ali_alt_red)
+
+# Convertissez les résultats en data frames pour utiliser ggplot2
+df_ali_can_red <- data.frame(alpha = scores_ali_can_red$alpha, beta = scores_ali_can_red$beta)
+df_ali_alt_red <- data.frame(alpha = scores_ali_alt_red$alpha, beta = scores_ali_alt_red$beta)
+
+# Créez un histogramme des scores alpha avec ggplot2
+p_alpha <- ggplot(df_ali_can_red, aes(x = alpha, fill = "ali_can_red")) +
+  geom_histogram(binwidth = 0.05, position = "dodge", alpha = 0.7) +
+  geom_histogram(data = df_ali_alt_red, aes(x = alpha, fill = "ali_alt_red"),
+                 binwidth = 0.05, position = "dodge", alpha = 0.7) +
+  labs(title = "Histogramme des Scores Alpha", x = "Score Alpha", y = "Fréquence") +
+  scale_fill_manual(values = c("ali_can_red" = "blue", "ali_alt_red" = "red")) +
+  theme_minimal()
+
+# Créez un histogramme des scores beta avec ggplot2
+p_beta <- ggplot(df_ali_can_red, aes(x = beta, fill = "ali_can_red")) +
+  geom_histogram(binwidth = 0.05, position = "dodge", alpha = 0.7) +
+  geom_histogram(data = df_ali_alt_red, aes(x = beta, fill = "ali_alt_red"),
+                 binwidth = 0.05, position = "dodge", alpha = 0.7) +
+  labs(title = "Histogramme des Scores Beta", x = "Score Beta", y = "Fréquence") +
+  scale_fill_manual(values = c("ali_can_red" = "blue", "ali_alt_red" = "red")) +
+  theme_minimal()
+
+
+
+
+
+# Affichez les deux graphiques côte à côte
+library(gridExtra)
+grid.arrange(p_alpha, p_beta, ncol = 2)
+```
+### Full 
+```{r full_scores, echo=FALSE}
+scores_ali_can <- calculateScores(ali_can)
+scores_ali_alt<- calculateScores(ali_alt)
+
+# Convertissez les résultats en data frames pour utiliser ggplot2
+df_ali_can <- data.frame(alpha = scores_ali_can$alpha, beta = scores_ali_can$beta)
+df_ali_alt <- data.frame(alpha = scores_ali_alt$alpha, beta = scores_ali_alt$beta)
+
+# Créez un histogramme des scores alpha avec ggplot2
+p_alpha <- ggplot(df_ali_can, aes(x = alpha, fill = "ali_can")) +
+  geom_histogram(binwidth = 0.05, position = "dodge", alpha = 0.7) +
+  geom_histogram(data = df_ali_alt, aes(x = alpha, fill = "ali_alt"),
+                 binwidth = 0.05, position = "dodge", alpha = 0.7) +
+  labs(title = "Histogramme des Scores Alpha", x = "Score Alpha", y = "Fréquence") +
+  scale_fill_manual(values = c("ali_can" = "blue", "ali_alt" = "red")) +
+  theme_minimal()
+
+# Créez un histogramme des scores beta avec ggplot2
+p_beta <- ggplot(df_ali_can, aes(x = beta, fill = "ali_can")) +
+  geom_histogram(binwidth = 0.05, position = "dodge", alpha = 0.7) +
+  geom_histogram(data = df_ali_alt, aes(x = beta, fill = "ali_alt"),
+                 binwidth = 0.05, position = "dodge", alpha = 0.7) +
+  labs(title = "Histogramme des Scores Beta", x = "Score Beta", y = "Fréquence") +
+  scale_fill_manual(values = c("ali_can" = "blue", "ali_alt" = "red")) +
+  theme_minimal()
+
+write.csv(scores_ali_alt, file = paste0(GENE ,"/inter/scores_ali_alt.csv"), row.names = FALSE)
+write.csv(scores_ali_can, file = paste0(GENE ,"/inter/scores_ali_can.csv"), row.names = FALSE)
+
+
+# Affichez les deux graphiques côte à côte
+library(gridExtra)
+grid.arrange(p_alpha, p_beta, ncol = 2)
+```
+## POSITION  {.tabset .tabset-fade}
+
+### Reduced 
+
+```{r position, echo=FALSE}
+
+
+matrices_alpha_beta_0 <-  creer_matrices_position_red(ali_can_red)
+
+matrices_alpha_beta_alt <- creer_matrices_position_red(ali_alt_red)
+
+
+df_long_0 <- tidyr::gather(matrices_alpha_beta_0, key = "Variable", value = "Valeur")
+df_long_alt <- tidyr::gather(matrices_alpha_beta_alt, key = "Variable", value = "Valeur")
+
+
+# Ajouter une colonne "Type" en extrayant le préfixe "alpha" ou "beta"
+df_long_0$Type <- sub("\\..*", "", df_long_0$Variable)
+df_long_alt$Type <- sub("\\..*", "", df_long_alt$Variable)
+
+# Créer les barplots côte à côte
+p1 <- ggplot(df_long_0, aes(x = Variable, fill = Valeur)) +
+  geom_bar(position = "fill", stat = "count") +
+  facet_wrap(~Type, scales = "free_x")  +
+  labs(title = "canonique",
+       x = "Position",
+       y = "Proportion") +
+  theme_minimal()
+
+p2 <- ggplot(df_long_alt, aes(x = Variable, fill = Valeur)) +
+  geom_bar(position = "fill", stat = "count") +
+  facet_wrap(~Type, scales = "free_x") +
+  labs(title = "alternatif",
+       x = "Position",
+       y = "Proportion") +
+  theme_minimal()
+
+
+print(grid.arrange(p1, p2, ncol = 2))
+
+
+
+```
+### Full
+```{r position_full, message = FALSE, echo=FALSE,fig.height = 15, fig.fig.width = 40}
+
+
+
+
+matrices_alpha_beta_0 <-  creer_matrices_position(ali_can)
+
+matrices_alpha_beta_alt <- creer_matrices_position(ali_alt)
+
+
+df_long_0 <- tidyr::gather(matrices_alpha_beta_0, key = "Variable", value = "Valeur")
+df_long_alt <- tidyr::gather(matrices_alpha_beta_alt, key = "Variable", value = "Valeur")
+
+
+# Ajouter une colonne "Type" en extrayant le préfixe "alpha" ou "beta"
+df_long_0$Type <- sub("\\..*", "", df_long_0$Variable)
+df_long_alt$Type <- sub("\\..*", "", df_long_alt$Variable)
+
+# Créer les barplots côte à côte
+p1 <- ggplot(df_long_0, aes(x = Variable, fill = Valeur)) +
+  geom_bar(position = "fill", stat = "count") +
+  facet_wrap(~Type, scales = "free_x")  +
+  labs(title = "canonique",
+       x = "Position",
+       y = "Proportion") +
+  theme_minimal()
+
+p2 <- ggplot(df_long_alt, aes(x = Variable, fill = Valeur)) +
+  geom_bar(position = "fill", stat = "count") +
+  facet_wrap(~Type, scales = "free_x") +
+  labs(title = "alternatif",
+       x = "Position",
+       y = "Proportion") +
+  theme_minimal()
+
+
+print(grid.arrange(p1, p2, ncol = 2))
+
+```
+
+
+
+
+
+## POSITION ALPHABET_RED HEATMAP
+```{r position_heatmap, message = FALSE, echo=FALSE,fig.height = 15, fig.fig.width = 40}
+
+
+
+df_long_0 <- matrices_alpha_beta_0 %>%
+  rownames_to_column(var = "Transcrit") %>%
+  pivot_longer(cols = -Transcrit, names_to = "Position", values_to = "Valeur")
+
+
+df_long_alt <- matrices_alpha_beta_alt %>%
+  rownames_to_column(var = "Transcrit") %>%
+  pivot_longer(cols = -Transcrit, names_to = "Position", values_to = "Valeur")
+
+
+
+
+# Définir les couleurs pour TRUE et FALSE
+couleurs_heatmap <- c("#FFFFFF", "#FF0000")  # Blanc pour FALSE, Rouge pour TRUE
+
+# Première heatmap avec df_long_0
+heatmap_0 <- ggplot(df_long_0, aes(x = Position, y = Transcrit, fill = Valeur)) +
+  geom_tile() +
+  scale_fill_manual(values = couleurs_heatmap) +
+  labs(title = "Heatmap - Canonique") +
+  theme_minimal()
+
+# Deuxième heatmap avec df_long_alt
+heatmap_alt <- ggplot(df_long_alt, aes(x = Position, y = Transcrit, fill = Valeur)) +
+  geom_tile() +
+  scale_fill_manual(values = couleurs_heatmap) +
+  labs(title = "Heatmap - Alternatif") +
+  theme_minimal()
+
+# Afficher les deux heatmaps
+heatmap_0
+heatmap_alt
+
+```
+
