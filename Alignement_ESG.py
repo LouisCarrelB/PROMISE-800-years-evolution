@@ -20,7 +20,6 @@ def gap_inter(A, B):
     return B
 
 
-
 # get the exon coordinates from the PIR sequence file
 def get_sexon_coord(gid,tid,seqFname):
 
@@ -101,6 +100,7 @@ def calculate_e_value(score, query_length, database_length):
     e_value = K * query_length * database_length * math.exp(-lambda_value * score)
 
     return e_value
+
 
 
 
