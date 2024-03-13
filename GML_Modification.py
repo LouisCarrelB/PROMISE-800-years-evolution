@@ -13,6 +13,14 @@ from Bio import SeqIO
 import sys 
 
 
+def counts_seq_added(fasta_file):
+    count = 0
+    with open(fasta_file, 'r') as file:
+        for line in file:
+            if line.startswith(">") and not line.startswith(">EN"):
+                count += 1
+    return count
+
 def _gene2n_transcripts(data):
     """
     Return a dictionary from gene id to number of transcripts in the gene.
@@ -105,7 +113,7 @@ def nodes_and_edges2genes_and_transcripts(  # pylint: disable=too-many-locals
 
 def parcourir_repertoire_msa(repertoire):
     resultats = collections.defaultdict(set)  # Utilisez un defaultdict avec des ensembles comme valeurs
-
+    counts = collections.defaultdict(set)
     for fichier in os.listdir(repertoire):
         if fichier.endswith(".fasta") and fichier.startswith("msa_s_exon_"):
             chemin_fichier = os.path.join(repertoire, fichier)
@@ -116,8 +124,8 @@ def parcourir_repertoire_msa(repertoire):
                 sequences.add(nom_transcrit)  # Utilisez add pour ajouter à l'ensemble
 
             resultats[identifiant_exon] = sequences
-
-    return resultats
+            counts[identifiant_exon] = counts_seq_added(chemin_fichier)
+    return resultats,counts
 
 
 
@@ -133,7 +141,7 @@ def _get_elements(node2elements):
 
 def splice_graph_gml(  # pylint: disable=too-many-locals, too-many-arguments
         filename, node2genes, edge2genes, node2transcripts,
-        edge2transcripts, edge2trx_cons, s_exon_2_char,N_TRANSCRIPT):
+        edge2transcripts, edge2trx_cons, s_exon_2_char,N_PROT,n_sequences_added):
     """
     Store the splice graph in GML (Graph Modelling Language) format.
 
@@ -146,8 +154,9 @@ def splice_graph_gml(  # pylint: disable=too-many-locals, too-many-arguments
             '.gml extension was added, the splice graph will be stored at %s',
             filename)
 
-    n_genes = len(_get_elements(node2genes))
+    all_sequences = len(_get_elements(node2genes))
     n_transcripts = len(_get_elements(node2transcripts))
+    n_protein = N_PROT + n_transcripts # On compte ici le nombre de séquence total utilisées pour construire le graph (la dimension de gène est abandonnée)
 
     with open(filename, 'w', encoding="utf-8") as gml:
         gml.write('''
@@ -159,19 +168,19 @@ def splice_graph_gml(  # pylint: disable=too-many-locals, too-many-arguments
         node2id = {}
         node_id = 1
         for node, genes in node2genes.items():
-            conservation = 100.0 * (len(genes) / n_genes)
-
-            transcript_fraction_a3m = 100.0 * (len(genes)/ N_TRANSCRIPT)
+            pourcentage_of_sequences_used = 100.0 * (len(genes) / all_sequences) # On regarde ici le nombre de séquence dans le MSA par rapport à la totalitée des séquences utilisées dans tout les MSAs 
             transcripts = node2transcripts[node]
-            transcript_fraction_original_thoraxe = 100.0 * (len(transcripts) / n_transcripts)
+            sequences_added = n_sequences_added[node]
+            transcript_fraction_a3m = 100.0 * ((len(transcripts)+sequences_added)/ n_protein) # Nombre de transcrits dans le noeds par rapport aux transcrits total utilisés dans thoraxe original (On a ici considéré en plus que une protéine du a3m = un transcrit)
+            transcript_fraction_original_thoraxe = 100.0 * (len(transcripts) / n_transcripts) # Score original données par les transcrits des 12 espèces de thoraxe 
             genes_str = ','.join(sorted(genes))
             transcripts_str = ','.join(sorted(transcripts))
             out_str = f'''
                 node [
                     id {node_id}
                     label "{node}"
+                    pourcentage_of_sequence {pourcentage_of_sequences_used}
                     transcript_fraction_original_thoraxe {transcript_fraction_original_thoraxe}
-                    conservation {conservation}
                     transcript_fraction_a3m {transcript_fraction_a3m}
                     genes "{genes_str}"
                     transcripts "{transcripts_str}"'''
@@ -195,8 +204,8 @@ def splice_graph_gml(  # pylint: disable=too-many-locals, too-many-arguments
             target_node = node2id.get(edge[1])
 
             if source_node is not None and target_node is not None:
-                conservation = 100.0 * (len(genes) / n_genes)
-                transcript_fraction_a3m = 100.0 * (len(genes)/ N_TRANSCRIPT)
+                #conservation = 100.0 * (len(genes) / n_genes)
+                transcript_fraction_a3m = 100.0 * (len(genes)/ n_protein)
                 transcripts = edge2transcripts[edge]
                 transcript_fraction = 100.0 * (len(transcripts) / n_transcripts)
                 transcript_weighted_conservation = edge2trx_cons[edge]
@@ -207,7 +216,6 @@ def splice_graph_gml(  # pylint: disable=too-many-locals, too-many-arguments
                         source {source_node}
                         target {target_node}
                         transcript_fraction {transcript_fraction}
-                        conservation {conservation}
                         transcript_fraction_a3m {transcript_fraction_a3m}
                         transcript_weighted_conservation {transcript_weighted_conservation}
                         genes "{genes_str}"
@@ -244,21 +252,16 @@ if __name__ == "__main__":
         (node2genes, edge2genes, node2transcripts, edge2transcripts, edge2trx_cons) = nodes_and_edges2genes_and_transcripts(s_exons)
         if a3m :
             gene_name = gene_name
-            GENE = "/Users/louiscarrel/Documents/Alignement_Project/DATA/"+gene_name + "/"
+            GENE = "DATA/"+gene_name + "/"
             fichiers_a3m = glob.glob(GENE + "*.a3m")    
-        
             if fichiers_a3m:
                     fichier_a3m = fichiers_a3m[0]
             with open(fichier_a3m, 'r') as file:
                     lines = file.readlines()
-            N_TRANSCRIPT = sum(1 for line in lines if line.startswith('>'))
-            node2genes = parcourir_repertoire_msa(f"{msa}/")
+            N_PROT = sum(1 for line in lines if line.startswith('>'))
+            node2genes,n_sequences_added = parcourir_repertoire_msa(f"{msa}/")
+            print(n_sequences_added)
             filename = GENE + "/new_a3m.gml"
         s_exon_2_char = {}
         splice_graph_gml(filename, node2genes, edge2genes, node2transcripts,
-    edge2transcripts, edge2trx_cons, s_exon_2_char,N_TRANSCRIPT)
-
-
-
-
-
+    edge2transcripts, edge2trx_cons, s_exon_2_char,N_PROT,n_sequences_added)
