@@ -260,7 +260,6 @@ if __name__ == "__main__":
                     lines = file.readlines()
             N_PROT = sum(1 for line in lines if line.startswith('>'))
             node2genes,n_sequences_added = parcourir_repertoire_msa(f"{msa}/")
-            print(n_sequences_added)
             filename = GENE + "/new_a3m.gml"
         s_exon_2_char = {}
         splice_graph_gml(filename, node2genes, edge2genes, node2transcripts,
