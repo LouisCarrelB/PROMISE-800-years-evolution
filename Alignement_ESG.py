@@ -415,7 +415,7 @@ def process_transcript(gene_name, GAP, IDENTITY, SIGNIFICANT_DIFFERENCE,GENE, ms
         fichier.write(f"Canonique s-exons empty : {list_empty}\n")
         fichier.write(f"Exons similaires : {asru}\n")
 
-
+def s_exon_augmentation(nouveau_repertoire)
 
 if __name__ == "__main__":
 
@@ -434,7 +434,7 @@ if __name__ == "__main__":
     path_table_path = GENE + "thoraxe/path_table.csv"
     pir_file_path = GENE + 'thoraxe/phylosofs/transcripts.pir'
     dictFname = GENE + '/thoraxe/phylosofs/s_exons.tsv'
-    nouveau_repertoire = GENE + "New_alignement_biga3m/"
+    nouveau_repertoire = GENE + "New_alignement/"
     ASRU = GENE + f"antoine_data/{gene_name}_ASRUs_table.csv"
     s_exon_table_path = GENE + "thoraxe/s_exon_table.csv"
 
