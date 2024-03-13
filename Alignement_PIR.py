@@ -92,7 +92,7 @@ if __name__ == "__main__":
     gene_name = sys.argv[1]
 
 
-    GENE = "../DATA/" + gene_name + "/"
+    GENE = "DATA/" + gene_name + "/"
 
 
     

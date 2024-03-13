@@ -12,6 +12,10 @@ import sys
 import shutil
 import math 
 
+
+
+
+
 def gap_inter(A, B):
     index_tiret = [i+1 for i in range(len(A)-2) if A[i].isalpha() and A[i+1] == '-' and A[i+2].isalpha()]  # Trouver les indices où le motif est trouvé
     for pos in reversed(index_tiret):  # Parcourir en sens inverse pour insérer les tirets correctement
@@ -425,7 +429,7 @@ if __name__ == "__main__":
     IDENTITY = 1e-4 
     SIGNIFICANT_DIFFERENCE = 1e-5
 
-    GENE = "../DATA/" + gene_name + "/"
+    GENE = "/DATA/" + gene_name + "/"
     msa_directory = GENE + "thoraxe/msa/"
     path_table_path = GENE + "thoraxe/path_table.csv"
     pir_file_path = GENE + 'thoraxe/phylosofs/transcripts.pir'

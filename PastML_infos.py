@@ -116,7 +116,7 @@ def make_data() :
 
 if __name__ == "__main__": 
     gene_name = "ENSG00000107643"
-    GENE = "../DATA/"+ gene_name+ "/"
+    GENE = "DATA/"+ gene_name+ "/"
     organism_mat = make_data()
     organism_names = organism_mat['Organism'].tolist()
     print(organism_names)

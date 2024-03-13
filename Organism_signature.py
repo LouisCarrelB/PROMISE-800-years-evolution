@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from matplotlib_venn import venn2
 
 gene_name = "ENSG00000109339/"
-GENE = "../DATA/" + gene_name
+GENE = "DATA/" + gene_name
 
 file_path_original = GENE + "inter/scores_ali_can_updated.csv"
 file_path_alternative = GENE + "inter/scores_ali_alt_updated.csv"

@@ -13,7 +13,6 @@ from Bio import SeqIO
 import sys 
 
 
-
 def _gene2n_transcripts(data):
     """
     Return a dictionary from gene id to number of transcripts in the gene.
@@ -164,14 +163,14 @@ def splice_graph_gml(  # pylint: disable=too-many-locals, too-many-arguments
 
             transcript_fraction_a3m = 100.0 * (len(genes)/ N_TRANSCRIPT)
             transcripts = node2transcripts[node]
-            transcript_fraction = 100.0 * (len(transcripts) / n_transcripts)
+            transcript_fraction_original_thoraxe = 100.0 * (len(transcripts) / n_transcripts)
             genes_str = ','.join(sorted(genes))
             transcripts_str = ','.join(sorted(transcripts))
             out_str = f'''
                 node [
                     id {node_id}
                     label "{node}"
-                    transcript_fraction {transcript_fraction}
+                    transcript_fraction_original_thoraxe {transcript_fraction_original_thoraxe}
                     conservation {conservation}
                     transcript_fraction_a3m {transcript_fraction_a3m}
                     genes "{genes_str}"
@@ -233,8 +232,8 @@ if __name__ == "__main__":
         sys.exit(1)         
     gene_name = sys.argv[1]
 
-    s_exons_path = f"/Users/louiscarrel/Documents/Alignement_Project/DATA/{gene_name}/thoraxe/s_exon_table.csv"
-    msa = f"/Users/louiscarrel/Documents/Alignement_Project/DATA/{gene_name}/New_alignement/"
+    s_exons_path = f"DATA/{gene_name}/thoraxe/s_exon_table.csv"
+    msa = f"DATA/{gene_name}/New_alignement/"
     a3m = True 
 
 
