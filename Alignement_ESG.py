@@ -11,6 +11,44 @@ from Bio import pairwise2
 import sys
 import shutil
 import math 
+import csv 
+
+
+
+def traiter_fichier_a3m(chemin_fichier):
+    # Dictionnaire pour stocker le nombre d'occurrences de chaque identifiant
+    occurrences = {}
+    
+    # Parcourir le fichier pour compter les occurrences de chaque identifiant
+    with open(chemin_fichier, 'r') as file:
+        for line in file:
+            if line.startswith(">"):
+                identifiant = line.split()[0][1:]
+                if identifiant in occurrences:
+                    occurrences[identifiant] += 1
+                else:
+                    occurrences[identifiant] = 1
+    
+    # Dictionnaire pour stocker les nouveaux noms de transcrits
+    noms_transcrits = {}
+    
+    # Parcourir à nouveau le fichier pour créer de nouveaux noms de transcrits si nécessaire
+    with open(chemin_fichier, 'r') as input_file, open(GENE + "good.a3m", 'w') as output_file:
+        for line in input_file:
+            if line.startswith(">"):
+                identifiant = line.split()[0][1:]
+                if occurrences[identifiant] > 1:
+                    if identifiant not in noms_transcrits:
+                        noms_transcrits[identifiant] = 1
+                    else:
+                        noms_transcrits[identifiant] += 1
+                    nouveau_nom = f"{identifiant}.{noms_transcrits[identifiant]}"
+                    output_file.write(">" + nouveau_nom + "\n")
+                else:
+                    output_file.write(line)
+            else:
+                output_file.write(line)
+
 
 
 
@@ -343,14 +381,15 @@ def process_transcript(gene_name, GAP, IDENTITY, SIGNIFICANT_DIFFERENCE,GENE, ms
     coord = get_sexon_coord(query_gene_id, query_transcrit_id, pir_file_path)
     ids = get_sexon_id(dictFname)
     exon_coordinates_transcript = match_coordinates_and_ids(coord, ids)
-    csv_file_path = f"{gene_name}/inter/exon_coordinates_transcript.csv"
+    csv_file_path = f"DATA/{gene_name}/inter/exon_coordinates_transcript.csv"
     exon_coordinates_df = pd.DataFrame(list(exon_coordinates_transcript.items()), columns=['Key', 'Value'])
     exon_coordinates_df.to_csv(csv_file_path, index=False)
     print(f"Les données ont été enregistrées avec succès dans {csv_file_path}")
 
     query_exon_paths = path_table.loc[(path_table['GeneID'] == query_gene_id) & (path_table['TranscriptIDCluster'] == query_transcrit_id), 'Path'].tolist()
-
+    exons_similaire = {}
     identifiants = []
+    
     for identifiant in query_exon_paths:
         matches = re.findall(r'[^/]+', identifiant)
         identifiants.extend(matches)
@@ -386,6 +425,7 @@ def process_transcript(gene_name, GAP, IDENTITY, SIGNIFICANT_DIFFERENCE,GENE, ms
                             # Sélectionner la colonne correspondante dans asru_table_alt
                             exon_alt_list = asru_table_alt.iloc[:, index].tolist()
                             L  = [exon_id,exon_alt_list]
+                            exons_similaire[exon_id] = exon_alt_list
                             asru.append(L)
                             all_msa, positions = new_borne(exon_start_init, exon_end_init, exon_alt_list)
 
@@ -414,8 +454,88 @@ def process_transcript(gene_name, GAP, IDENTITY, SIGNIFICANT_DIFFERENCE,GENE, ms
         fichier.write(f"IDENTITY: {IDENTITY}\n")
         fichier.write(f"Canonique s-exons empty : {list_empty}\n")
         fichier.write(f"Exons similaires : {asru}\n")
+    return query_exon_paths, exons_similaire
 
-def s_exon_augmentation(nouveau_repertoire)
+
+
+
+
+
+
+def s_exon_augmentation(repertoire, s_exon_table_path):
+    output_csv_path = os.path.splitext(s_exon_table_path)[0] + "_a3m.csv"  # Créer le nom de fichier de sortie
+    
+    with open(s_exon_table_path, 'r') as csvfile:
+        reader = csv.DictReader(csvfile)
+        fieldnames = reader.fieldnames
+        
+        with open(output_csv_path, 'w', newline='') as output_csvfile:
+            writer = csv.DictWriter(output_csvfile, fieldnames=fieldnames)
+            writer.writeheader()
+            
+            for row in reader:
+                writer.writerow(row)
+    
+    with open(output_csv_path, 'a', newline='') as output_csvfile:
+        writer = csv.DictWriter(output_csvfile, fieldnames=fieldnames)
+        
+        for fichier in os.listdir(repertoire):
+            if fichier.endswith(".fasta") and fichier.startswith("msa_s_exon_"):
+                chemin_fichier = os.path.join(repertoire, fichier)
+                identifiant_exon = fichier.split("_exon_")[1].rstrip(".fasta")
+                for record in SeqIO.parse(chemin_fichier, "fasta"):
+                    nom_transcrit = record.id.split()[0][0:]  # Obtenez l'identifiant du transcrit après ">"
+                    if not nom_transcrit.startswith("ENS"):
+                        writer.writerow({'TranscriptIDCluster': nom_transcrit, 'S_exonID': identifiant_exon})
+
+
+
+def rank(table_path, path):
+    # Si path est une liste avec un seul élément, le transformer en chaîne de caractères
+    if isinstance(path, list) and len(path) == 1:
+        path = path[0]
+    
+    # Diviser la chaîne de caractères path en une liste d'identifiants d'exon
+    path_list = path.split('/')
+    
+    # Lire la table CSV et stocker les données dans une liste de dictionnaires
+    with open(table_path, 'r') as csvfile:
+        reader = csv.DictReader(csvfile)
+        table = list(reader)
+    
+    # Parcourir chaque transcrit ID dans la colonne TranscriptIDCluster
+    for transcript_id in set(row['TranscriptIDCluster'] for row in table if not row['TranscriptIDCluster'].startswith("EN")):
+        # Initialiser un dictionnaire pour stocker les ordres des exons
+        exon_order = {}
+        # Initialiser le compteur d'exon
+        exon_count = 1
+        # Parcourir le chemin et attribuer un numéro unique à chaque exon rencontré
+        for exon_id in path_list:
+            # Vérifier si l'exon est présent pour le transcrit ID
+            if any(row['S_exonID'] == exon_id and row['TranscriptIDCluster'] == transcript_id for row in table):
+                # Ajouter l'exon au dictionnaire avec son numéro d'ordre s'il n'est pas déjà présent
+                if exon_id not in exon_order:
+                    exon_order[exon_id] = exon_count
+                    exon_count += 1
+        
+        # Parcourir chaque ligne de la table pour mettre à jour ExonRank
+        for row in table:
+            if row['TranscriptIDCluster'] == transcript_id:
+                # Récupérer les identifiants d'exon pour ce transcrit ID dans le bon ordre
+                exon_ids_ordered = [exon_id for exon_id in path_list if exon_id in row['S_exonID'].split(',')]
+                # Créer une liste ordonnée des rangs d'exon
+                exon_ranks = [str(exon_order.get(exon_id, '')) for exon_id in exon_ids_ordered]
+                # Ajouter les rangs dans la colonne ExonRank
+                row['ExonRank'] = ','.join(exon_ranks)
+    
+    # Enregistrer les modifications dans un nouveau fichier CSV
+    output_csv_path = table_path.rstrip('.csv') + '_ranked.csv'
+    with open(output_csv_path, 'w', newline='') as output_csvfile:
+        writer = csv.DictWriter(output_csvfile, fieldnames=reader.fieldnames)
+        writer.writeheader()
+        writer.writerows(table)
+
+
 
 if __name__ == "__main__":
 
@@ -429,7 +549,7 @@ if __name__ == "__main__":
     IDENTITY = 1e-4 
     SIGNIFICANT_DIFFERENCE = 1e-5
 
-    GENE = "/DATA/" + gene_name + "/"
+    GENE = "DATA/" + gene_name + "/"
     msa_directory = GENE + "thoraxe/msa/"
     path_table_path = GENE + "thoraxe/path_table.csv"
     pir_file_path = GENE + 'thoraxe/phylosofs/transcripts.pir'
@@ -440,5 +560,20 @@ if __name__ == "__main__":
 
     transcrit_file = pd.read_csv(GENE + 'inter/a3m_to_PIR.csv')
 
-    process_transcript(gene_name, GAP, IDENTITY,SIGNIFICANT_DIFFERENCE, GENE, msa_directory, path_table_path, pir_file_path, 
+    for a3m_fichier in glob.glob(GENE +"other_data/" + "*.a3m"):
+        traiter_fichier_a3m(a3m_fichier)
+
+    exon_path, exon_similaire = process_transcript(gene_name, GAP, IDENTITY,SIGNIFICANT_DIFFERENCE, GENE, msa_directory, path_table_path, pir_file_path, 
                        dictFname, nouveau_repertoire, ASRU, transcrit_file, query_transcrit_id,s_exon_table_path)
+    
+
+
+    s_exon_augmentation(nouveau_repertoire,s_exon_table_path)
+
+    new_s_exon_table_path = GENE + "thoraxe/s_exon_table_a3m.csv"
+    print(exon_path)
+    rank(new_s_exon_table_path,exon_path)
+
+
+
+

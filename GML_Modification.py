@@ -13,6 +13,40 @@ from Bio import SeqIO
 import sys 
 
 
+def traiter_fichier_a3m(chemin_fichier):
+    # Dictionnaire pour stocker le nombre d'occurrences de chaque identifiant
+    occurrences = {}
+    
+    # Parcourir le fichier pour compter les occurrences de chaque identifiant
+    with open(chemin_fichier, 'r') as file:
+        for line in file:
+            if line.startswith(">"):
+                identifiant = line.split()[0][1:]
+                if identifiant in occurrences:
+                    occurrences[identifiant] += 1
+                else:
+                    occurrences[identifiant] = 1
+    
+    # Dictionnaire pour stocker les nouveaux noms de transcrits
+    noms_transcrits = {}
+    
+    # Parcourir à nouveau le fichier pour créer de nouveaux noms de transcrits si nécessaire
+    with open(chemin_fichier, 'r') as input_file, open("good.a3m", 'w') as output_file:
+        for line in input_file:
+            if line.startswith(">"):
+                identifiant = line.split()[0][1:]
+                if occurrences[identifiant] > 1:
+                    if identifiant not in noms_transcrits:
+                        noms_transcrits[identifiant] = 1
+                    else:
+                        noms_transcrits[identifiant] += 1
+                    nouveau_nom = f"{identifiant}.{noms_transcrits[identifiant]}"
+                    output_file.write(">" + nouveau_nom + "\n")
+                else:
+                    output_file.write(line)
+            else:
+                output_file.write(line)
+                
 def counts_seq_added(fasta_file):
     count = 0
     with open(fasta_file, 'r') as file:
@@ -88,6 +122,7 @@ def nodes_and_edges2genes_and_transcripts(  # pylint: disable=too-many-locals
             node2genes[previous].update({gene_id})
             node2transcripts[previous].update({transcript_id})
             for _, subexon in enumerate(subexons):
+                print(subexon)
                 orthologs = subexon.split('/')
                 for ortholog in orthologs:
                     node2genes[ortholog].update({gene_id})
