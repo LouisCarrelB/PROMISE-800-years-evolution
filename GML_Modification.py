@@ -13,40 +13,6 @@ from Bio import SeqIO
 import sys 
 
 
-def traiter_fichier_a3m(chemin_fichier):
-    # Dictionnaire pour stocker le nombre d'occurrences de chaque identifiant
-    occurrences = {}
-    
-    # Parcourir le fichier pour compter les occurrences de chaque identifiant
-    with open(chemin_fichier, 'r') as file:
-        for line in file:
-            if line.startswith(">"):
-                identifiant = line.split()[0][1:]
-                if identifiant in occurrences:
-                    occurrences[identifiant] += 1
-                else:
-                    occurrences[identifiant] = 1
-    
-    # Dictionnaire pour stocker les nouveaux noms de transcrits
-    noms_transcrits = {}
-    
-    # Parcourir à nouveau le fichier pour créer de nouveaux noms de transcrits si nécessaire
-    with open(chemin_fichier, 'r') as input_file, open("good.a3m", 'w') as output_file:
-        for line in input_file:
-            if line.startswith(">"):
-                identifiant = line.split()[0][1:]
-                if occurrences[identifiant] > 1:
-                    if identifiant not in noms_transcrits:
-                        noms_transcrits[identifiant] = 1
-                    else:
-                        noms_transcrits[identifiant] += 1
-                    nouveau_nom = f"{identifiant}.{noms_transcrits[identifiant]}"
-                    output_file.write(">" + nouveau_nom + "\n")
-                else:
-                    output_file.write(line)
-            else:
-                output_file.write(line)
-                
 def counts_seq_added(fasta_file):
     count = 0
     with open(fasta_file, 'r') as file:
@@ -97,6 +63,7 @@ def _transcript_weighted_conservation(gene2transcriptnumber,
     return edge2trx_cons
 
 
+
 def nodes_and_edges2genes_and_transcripts(  # pylint: disable=too-many-locals
         data):
     """
@@ -122,7 +89,6 @@ def nodes_and_edges2genes_and_transcripts(  # pylint: disable=too-many-locals
             node2genes[previous].update({gene_id})
             node2transcripts[previous].update({transcript_id})
             for _, subexon in enumerate(subexons):
-                print(subexon)
                 orthologs = subexon.split('/')
                 for ortholog in orthologs:
                     node2genes[ortholog].update({gene_id})
@@ -138,12 +104,12 @@ def nodes_and_edges2genes_and_transcripts(  # pylint: disable=too-many-locals
             edge2transcripts[(previous, 'stop')].update({transcript_id})
 
     edge2genes, edge2gene_abundance = _edge2stats(edge2gene_list)
-
     edge2trx_cons = _transcript_weighted_conservation(gene2transcriptnumber,
                                                       edge2gene_abundance)
 
     return (node2genes, edge2genes, node2transcripts, edge2transcripts,
             edge2trx_cons)
+
 
 
 def parcourir_repertoire_msa(repertoire):
@@ -176,7 +142,7 @@ def _get_elements(node2elements):
 
 def splice_graph_gml(  # pylint: disable=too-many-locals, too-many-arguments
         filename, node2genes, edge2genes, node2transcripts,
-        edge2transcripts, edge2trx_cons, s_exon_2_char,N_PROT,n_sequences_added):
+        edge2transcripts, edge2trx_cons, s_exon_2_char,N_PROT):
     """
     Store the splice graph in GML (Graph Modelling Language) format.
 
@@ -202,11 +168,12 @@ def splice_graph_gml(  # pylint: disable=too-many-locals, too-many-arguments
         ''')
         node2id = {}
         node_id = 1
+    
         for node, genes in node2genes.items():
             pourcentage_of_sequences_used = 100.0 * (len(genes) / all_sequences) # On regarde ici le nombre de séquence dans le MSA par rapport à la totalitée des séquences utilisées dans tout les MSAs 
             transcripts = node2transcripts[node]
-            sequences_added = n_sequences_added[node]
-            transcript_fraction_a3m = 100.0 * ((len(transcripts)+sequences_added)/ n_protein) # Nombre de transcrits dans le noeds par rapport aux transcrits total utilisés dans thoraxe original (On a ici considéré en plus que une protéine du a3m = un transcrit)
+            #sequences_added = n_sequences_added[node]
+            #transcript_fraction_a3m = 100.0 * ((len(transcripts)+sequences_added)/ n_protein) # Nombre de transcrits dans le noeds par rapport aux transcrits total utilisés dans thoraxe original (On a ici considéré en plus que une protéine du a3m = un transcrit)
             transcript_fraction_original_thoraxe = 100.0 * (len(transcripts) / n_transcripts) # Score original données par les transcrits des 12 espèces de thoraxe 
             genes_str = ','.join(sorted(genes))
             transcripts_str = ','.join(sorted(transcripts))
@@ -214,9 +181,7 @@ def splice_graph_gml(  # pylint: disable=too-many-locals, too-many-arguments
                 node [
                     id {node_id}
                     label "{node}"
-                    pourcentage_of_sequence {pourcentage_of_sequences_used}
-                    transcript_fraction_original_thoraxe {transcript_fraction_original_thoraxe}
-                    transcript_fraction_a3m {transcript_fraction_a3m}
+                    transcript_fraction {transcript_fraction_original_thoraxe}
                     genes "{genes_str}"
                     transcripts "{transcripts_str}"'''
             if s_exon_2_char and node not in ['start', 'stop']:
@@ -232,15 +197,13 @@ def splice_graph_gml(  # pylint: disable=too-many-locals, too-many-arguments
             node2id[node] = node_id
             node_id += 1
         for edge, genes in edge2genes.items():
-            if edge[0] == 'start':
-                continue  # Passe à l'itération suivante si le nœud source est 'start'
 
             source_node = node2id.get(edge[0])
             target_node = node2id.get(edge[1])
 
             if source_node is not None and target_node is not None:
                 #conservation = 100.0 * (len(genes) / n_genes)
-                transcript_fraction_a3m = 100.0 * (len(genes)/ n_protein)
+                #transcript_fraction_a3m = 100.0 * (len(genes)/ n_protein)
                 transcripts = edge2transcripts[edge]
                 transcript_fraction = 100.0 * (len(transcripts) / n_transcripts)
                 transcript_weighted_conservation = edge2trx_cons[edge]
@@ -251,7 +214,6 @@ def splice_graph_gml(  # pylint: disable=too-many-locals, too-many-arguments
                         source {source_node}
                         target {target_node}
                         transcript_fraction {transcript_fraction}
-                        transcript_fraction_a3m {transcript_fraction_a3m}
                         transcript_weighted_conservation {transcript_weighted_conservation}
                         genes "{genes_str}"
                         transcripts "{transcripts_str}"
@@ -267,6 +229,7 @@ def splice_graph_gml(  # pylint: disable=too-many-locals, too-many-arguments
 
 
 
+
 if __name__ == "__main__":
     
 
@@ -275,7 +238,7 @@ if __name__ == "__main__":
         sys.exit(1)         
     gene_name = sys.argv[1]
 
-    s_exons_path = f"DATA/{gene_name}/thoraxe/s_exon_table.csv"
+    s_exons_path = f"DATA/{gene_name}/thoraxe/s_exon_table_a3m.csv"
     msa = f"DATA/{gene_name}/New_alignement/"
     a3m = True 
 
@@ -294,8 +257,8 @@ if __name__ == "__main__":
             with open(fichier_a3m, 'r') as file:
                     lines = file.readlines()
             N_PROT = sum(1 for line in lines if line.startswith('>'))
-            node2genes,n_sequences_added = parcourir_repertoire_msa(f"{msa}/")
+            #node2genes,n_sequences_added = parcourir_repertoire_msa(f"{msa}/")
             filename = GENE + "/new_a3m.gml"
         s_exon_2_char = {}
         splice_graph_gml(filename, node2genes, edge2genes, node2transcripts,
-    edge2transcripts, edge2trx_cons, s_exon_2_char,N_PROT,n_sequences_added)
+    edge2transcripts, edge2trx_cons, s_exon_2_char,N_PROT)

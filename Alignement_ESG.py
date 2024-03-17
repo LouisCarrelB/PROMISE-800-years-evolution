@@ -486,17 +486,25 @@ def s_exon_augmentation(repertoire, s_exon_table_path):
                 for record in SeqIO.parse(chemin_fichier, "fasta"):
                     nom_transcrit = record.id.split()[0][0:]  # Obtenez l'identifiant du transcrit après ">"
                     if not nom_transcrit.startswith("ENS"):
-                        writer.writerow({'TranscriptIDCluster': nom_transcrit, 'S_exonID': identifiant_exon})
+                        writer.writerow({'TranscriptIDCluster': nom_transcrit,'GeneID': nom_transcrit, 'S_exonID': identifiant_exon})
 
 
+                        
 
-def rank(table_path, path):
+
+def rank(table_path, path, exon_similaire):
     # Si path est une liste avec un seul élément, le transformer en chaîne de caractères
     if isinstance(path, list) and len(path) == 1:
         path = path[0]
     
     # Diviser la chaîne de caractères path en une liste d'identifiants d'exon
     path_list = path.split('/')
+    
+    # Modifier le chemin pour ajouter les exons similaires à la suite de l'exon principal
+    for exon_principal, exons_similaires in exon_similaire.items():
+        if exon_principal in path_list:
+            index_exon_principal = path_list.index(exon_principal)
+            path_list = path_list[:index_exon_principal+1] + exons_similaires + path_list[index_exon_principal+1:]
     
     # Lire la table CSV et stocker les données dans une liste de dictionnaires
     with open(table_path, 'r') as csvfile:
@@ -527,15 +535,11 @@ def rank(table_path, path):
                 exon_ranks = [str(exon_order.get(exon_id, '')) for exon_id in exon_ids_ordered]
                 # Ajouter les rangs dans la colonne ExonRank
                 row['ExonRank'] = ','.join(exon_ranks)
-    
-    # Enregistrer les modifications dans un nouveau fichier CSV
-    output_csv_path = table_path.rstrip('.csv') + '_ranked.csv'
-    with open(output_csv_path, 'w', newline='') as output_csvfile:
+
+    with open(table_path, 'w', newline='') as output_csvfile:
         writer = csv.DictWriter(output_csvfile, fieldnames=reader.fieldnames)
         writer.writeheader()
         writer.writerows(table)
-
-
 
 if __name__ == "__main__":
 
@@ -565,15 +569,12 @@ if __name__ == "__main__":
 
     exon_path, exon_similaire = process_transcript(gene_name, GAP, IDENTITY,SIGNIFICANT_DIFFERENCE, GENE, msa_directory, path_table_path, pir_file_path, 
                        dictFname, nouveau_repertoire, ASRU, transcrit_file, query_transcrit_id,s_exon_table_path)
-    
-
+        
 
     s_exon_augmentation(nouveau_repertoire,s_exon_table_path)
 
     new_s_exon_table_path = GENE + "thoraxe/s_exon_table_a3m.csv"
-    print(exon_path)
-    rank(new_s_exon_table_path,exon_path)
-
+    rank(new_s_exon_table_path,exon_path,exon_similaire)
 
 
 
