@@ -73,7 +73,7 @@ computeSumOfPairs<-function(ali, match = 1, mismatch = -0.5, gap = 0, gapChar = 
 
 gene = "ENSG00000107643"
 
-file_path <- paste0("/Users/louiscarrel/Documents/Alignement_Project/",gene,"/New_alignement")
+file_path <- paste0("DATA/",gene,"/New_alignement")
 file_list <- list.files(path = file_path, pattern = "\\.fasta$", full.names = TRUE)
 
 # Initialisation du tableau

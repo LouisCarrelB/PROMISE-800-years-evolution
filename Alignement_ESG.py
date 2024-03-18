@@ -221,7 +221,7 @@ def adding_sequences(sequences_a3m, sequences_msa, exon_start, exon_end, GAP, ID
                 identity_percentage = calculate_identity_percentage(first_sequence_msa, selected_sequence)
                 e_val = calculate_e_value(identity_percentage, len(first_sequence_msa), nbr_seq)
                 if e_val < IDENTITY:
-                    selected_record = SeqRecord(selected_sequence, id=sequence_a3m.id)
+                    selected_record = SeqRecord(selected_sequence, id=sequence_a3m.id, description=f"Evalue={e_val}")
                     sequences_msa.append(selected_record)
         else:
             continue
@@ -249,8 +249,46 @@ def verify_exon(exon_id, query_transcript_id, s_exon_table_path):
         # Aucune case vide trouvée, retourner True
         return True
 
+def detect_signature(sequence):
+    # Créer un dictionnaire avec les positions comme clés et les acides aminés correspondants comme valeurs
+    sequence_dict = {}
+    for i, aa in enumerate(sequence):
+        sequence_dict[i + 1] = aa
+
+    # Définir les positions des acides aminés dans la signature alpha
+    positions_alpha = [16, 23, 13, 14, 17, 19, 21]
+    # Calculer le nombre d'acides aminés corrects dans la signature alpha
+    correct_alpha_count = sum(sequence_dict[pos] == "H" if pos == 16 else
+                              sequence_dict[pos] == "R" if pos == 23 else
+                              sequence_dict[pos] == "M" if pos == 13 else
+                              sequence_dict[pos] == "V" if pos == 14 else
+                              sequence_dict[pos] == "K" if pos == 17 else
+                              sequence_dict[pos] == "L" if pos == 19 else
+                              sequence_dict[pos] == "P" if pos == 21 else False
+                              for pos in positions_alpha)
+    # Calculer le score de signature alpha
+    score_alpha = correct_alpha_count / len(positions_alpha) * 100
+
+    # Définir les positions des acides aminés dans la signature beta
+    positions_beta = [16, 23, 11, 15, 18]
+    # Calculer le nombre d'acides aminés corrects dans la signature beta
+    correct_beta_count = sum(sequence_dict[pos] == "G" if pos == 16 else
+                             sequence_dict[pos] == "T" if pos == 23 else
+                             sequence_dict[pos] == "G" if pos == 11 else
+                             sequence_dict[pos] == "K" if pos == 15 else
+                             sequence_dict[pos] == "V" if pos == 18 else False
+                             for pos in positions_beta)
+    # Calculer le score de signature beta
+    score_beta = correct_beta_count / len(positions_beta) * 100
+
+    return score_alpha, score_beta
+
+
+
+
 
 def adding_sequence_alt(sequences_a3m,sequences_msa,all_msa, positions,exon_start,exon_end, GAP, IDENTITY,exon_id,nouveau_repertoire,nbr_seq,SIGNIFICANT_DIFFERENCE):
+    undecided = []
     
     first_sequence_msa = sequences_msa[0].seq  
     # Initialiser une variable pour stocker la séquence concaténée
@@ -259,7 +297,7 @@ def adding_sequence_alt(sequences_a3m,sequences_msa,all_msa, positions,exon_star
     # Boucler à travers la liste msa_all et concaténer les premières séquences de chaque exon
     for exon_key in all_msa:
         first_sequence_msa_alt += all_msa[exon_key][0].seq
-        
+    
         
     for sequence_a3m in sequences_a3m:
         # Sélectionner la séquence entre exon_start et exon_end
@@ -276,21 +314,40 @@ def adding_sequence_alt(sequences_a3m,sequences_msa,all_msa, positions,exon_star
                 B_score = calculate_identity_percentage(first_sequence_msa_alt, selected_sequence_alt)
                 A = calculate_e_value(A_score, len(first_sequence_msa), nbr_seq)
                 B = calculate_e_value(B_score, len(first_sequence_msa_alt), nbr_seq)
-                # Ajouter la séquence uniquement si l'identité est inférieure ou égale à 60%
+                Alpha, Beta = detect_signature(selected_sequence)
                 if A <= IDENTITY and B <= IDENTITY:
-                    if A < B and B - A > SIGNIFICANT_DIFFERENCE:
-                        selected_record = SeqRecord(selected_sequence, id=sequence_a3m.id)
-                        sequences_msa.append(selected_record)
-                    elif B < A and A - B > SIGNIFICANT_DIFFERENCE:
-                        for exon_key in all_msa : 
-                            begin, end = positions[exon_key]
-                            selected_record = SeqRecord(gap_inter(first_sequence_msa_alt,take_out_dupli(sequence_a3m.seq)[begin - 1:end]), id=sequence_a3m.id)
-                            all_msa[exon_key].append(selected_record)
-                    else:
-                        continue
+                    if Alpha ==  Beta :  
+                # Ajouter la séquence uniquement si l'identité est inférieure ou égale à 60%
+                        if A < B and B - A > SIGNIFICANT_DIFFERENCE:
+                            selected_record = SeqRecord(selected_sequence, id=sequence_a3m.id ,description=f"Evalue={min(A, B)} Alpha={Alpha} Beta={Beta}")
+                            sequences_msa.append(selected_record)
+                        elif B < A and A - B > SIGNIFICANT_DIFFERENCE:
+                            for exon_key in all_msa:
+                                begin, end = positions[exon_key]
+                                selected_record = SeqRecord(gap_inter(first_sequence_msa_alt, take_out_dupli(sequence_a3m.seq)[begin - 1:end]), 
+                                                            id=sequence_a3m.id,description=f"Evalue={min(A, B)} Alpha={Alpha} Beta={Beta}")
+                                all_msa[exon_key].append(selected_record)
+                        else :
+                                print(sequence_a3m.id)
+                                undecided_record = SeqRecord(selected_sequence, id=sequence_a3m.id, description=f"Evalue_A={A} Evalue_B={B} Alpha={Alpha} Beta={Beta}")
+                                undecided.append(undecided_record)
+                    else :
+                        if Alpha > Beta :
+                            selected_record = SeqRecord(selected_sequence, id=sequence_a3m.id ,description=f"Evalue={min(A, B)} Alpha={Alpha} Beta={Beta}")
+                            sequences_msa.append(selected_record)  
+                        else :
+                            for exon_key in all_msa:
+                                begin, end = positions[exon_key]
+                                selected_record = SeqRecord(gap_inter(first_sequence_msa_alt, take_out_dupli(sequence_a3m.seq)[begin - 1:end]), 
+                                                                    id=sequence_a3m.id, description=f"Evalue={min(A, B)} Alpha={Alpha} Beta={Beta}")
+                                all_msa[exon_key].append(selected_record)
+
 
     output_msa = nouveau_repertoire + f"msa_s_exon_{exon_id}.fasta"
     SeqIO.write(sequences_msa, output_msa, "fasta")
+
+    output_undecided = inter_path + f'undecided_sequences_{exon_id}.fasta'
+    SeqIO.write(undecided, output_undecided, "fasta")
     for exon_key in all_msa : 
         output_msa = nouveau_repertoire + f"msa_s_exon_{exon_key}.fasta"
         SeqIO.write(all_msa[exon_key], output_msa, "fasta")
@@ -551,7 +608,7 @@ if __name__ == "__main__":
 
     GAP = 70
     IDENTITY = 1e-4 
-    SIGNIFICANT_DIFFERENCE = 1e-5
+    SIGNIFICANT_DIFFERENCE = 1e-20
 
     GENE = "DATA/" + gene_name + "/"
     msa_directory = GENE + "thoraxe/msa/"
@@ -561,8 +618,9 @@ if __name__ == "__main__":
     nouveau_repertoire = GENE + "New_alignement/"
     ASRU = GENE + f"antoine_data/{gene_name}_ASRUs_table.csv"
     s_exon_table_path = GENE + "thoraxe/s_exon_table.csv"
+    inter_path = GENE + "inter/"
 
-    transcrit_file = pd.read_csv(GENE + 'inter/a3m_to_PIR.csv')
+    transcrit_file = pd.read_csv(inter_path + 'a3m_to_PIR.csv')
 
     for a3m_fichier in glob.glob(GENE +"other_data/" + "*.a3m"):
         traiter_fichier_a3m(a3m_fichier)

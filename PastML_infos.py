@@ -14,32 +14,6 @@ import re
 
 
 
-
-
-
-
-def get_taxid(organism_name):
-    Entrez.email = "louiscarrelbilliard@gmail.com" 
-    handle = Entrez.esearch(db="taxonomy", term=organism_name, retmode="xml")
-    record = Entrez.read(handle)
-    if record["Count"] == "0":
-        print(f"Aucun résultat trouvé pour {organism_name}.")
-        return None
-    else:
-        return record["IdList"][0]
-
-
-def build_tree(organism_names):
-    tree = Phylo.BaseTree.Tree()
-    clade = tree.clade  
-    for name in organism_names:
-        taxid = get_taxid(name)
-        if taxid:
-            child_clade = Phylo.BaseTree.Clade(name=name)  
-            child_clade.taxid = taxid 
-            clade.clades.append(child_clade) 
-    return tree
-
 def is_valid_organism(name):
     return bool(re.match(r'^[A-Za-z\s-]+$', name))
 
@@ -120,11 +94,5 @@ if __name__ == "__main__":
     organism_mat = make_data()
     organism_names = organism_mat['Organism'].tolist()
     print(organism_names)
-    tree = build_tree(organism_names)
-    print(tree)
-    if tree.count_terminals() > 1:
-        Phylo.draw(tree, do_show=True)
-        Phylo.write(tree, GENE+ "inter/arbre_phylogenetique.nwk", "newick")
-    else:
-        print("L'arbre ne contient pas assez d'espèces pour être affiché.")
+
 

@@ -26,7 +26,7 @@ readAli <- function(chain) {
 }
 
 # Chemin du répertoire contenant les fichiers FASTA
-file_path <- paste0("/Users/louiscarrel/Documents/Alignement_Project/",GENE,"/New_alignement_biga3m/")
+file_path <- paste0("DATA/",GENE,"/New_alignement/")
 file_list <- list.files(path = file_path, pattern = "\\.fasta$", full.names = TRUE)
 
 # Lecture des fichiers d'alignement
@@ -330,8 +330,8 @@ p_beta <- ggplot(df_ali_can, aes(x = beta, fill = "ali_can")) +
   scale_fill_manual(values = c("ali_can" = "blue", "ali_alt" = "red")) +
   theme_minimal()
 
-write.csv(scores_ali_alt, file = paste0(GENE ,"/inter/scores_ali_alt.csv"), row.names = FALSE)
-write.csv(scores_ali_can, file = paste0(GENE ,"/inter/scores_ali_can.csv"), row.names = FALSE)
+write.csv(scores_ali_alt, file = paste0("DATA/",GENE ,"/inter/scores_ali_alt.csv"), row.names = FALSE)
+write.csv(scores_ali_can, file = paste0("DATA/",GENE ,"/inter/scores_ali_can.csv"), row.names = FALSE)
 
 
 # Affichez les deux graphiques côte à côte

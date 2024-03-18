@@ -82,7 +82,7 @@ if __name__ == "__main__":
         sys.exit(1)         
     gene_name = sys.argv[1]
     
-    GENE = "../DATA/" + gene_name
+    GENE = "DATA/" + gene_name
     scores_ali_can = pd.read_csv(GENE + "/inter/scores_ali_can.csv")
     scores_ali_alt = pd.read_csv(GENE + "/inter/scores_ali_alt.csv")
 
