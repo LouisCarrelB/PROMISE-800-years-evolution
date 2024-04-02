@@ -608,7 +608,7 @@ if __name__ == "__main__":
 
     GAP = 70
     IDENTITY = 1e-4 
-    SIGNIFICANT_DIFFERENCE = 1e-20
+    SIGNIFICANT_DIFFERENCE = 1e-5
 
     GENE = "DATA/" + gene_name + "/"
     msa_directory = GENE + "thoraxe/msa/"
