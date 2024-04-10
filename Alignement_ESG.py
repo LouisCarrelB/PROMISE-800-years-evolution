@@ -12,14 +12,64 @@ import sys
 import shutil
 import math 
 import csv 
+import tempfile
+from tqdm import tqdm 
+
+
+def write_msa_to_temp_file(msa_object, temp_file_path):
+    """
+    Writes the MSA object to a temporary file.
+
+    Parameters:
+    msa_object (list): A list of SeqRecord objects representing the MSA.
+    temp_file_path (str): Path to the temporary file to write the MSA object.
+    """
+    SeqIO.write(msa_object, temp_file_path, "fasta")
+
+def build_hmm(input_file, output_file):
+    hmmbuild_command = f"/Users/louiscarrel/Downloads/hmmer-3.4/src/hmmbuild {output_file} {input_file}"
+    subprocess.call(hmmbuild_command, shell=True,stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+def score_sequence_with_hmm(hmm_file, sequence,exon_id):
+    sequence_file = nouveau_repertoire +  f"temp_sequence_{exon_id}.fasta"
+    # Remove dashes from the sequence
+    cleaned_sequence = sequence.replace("-", "")
+
+    # Save the new sequence in a FASTA file
+    with open(sequence_file, 'w') as f:
+        f.write(">new_sequence\n" + cleaned_sequence + "\n")
+
+    score_output_path = os.path.join(nouveau_repertoire, f"score_output_{exon_id}.txt")
+    # Execute hmmsearch
+    hmmsearch_command = f"/Users/louiscarrel/Downloads/hmmer-3.4/src/hmmsearch --tblout {score_output_path} {hmm_file} {sequence_file}"
+    subprocess.call(hmmsearch_command, shell=True,stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    os.remove(sequence_file)
+    # Read and return the score from score_output.txt
+    try:
+        with open(nouveau_repertoire + f"score_output_{exon_id}.txt", 'r') as f:
+            for line in f:
+                if not line.startswith("#"):
+                    return float(line.split()[5])  # needed to transfrom string in float 
+    except FileNotFoundError:
+        print("Score output file not found.")
+        return None
+
 
 
 
 def traiter_fichier_a3m(chemin_fichier):
-    # Dictionnaire pour stocker le nombre d'occurrences de chaque identifiant
+    '''
+    Traite un fichier au format A3M pour compter les occurrences des identifiants de séquence et ajuster les noms de transcrits en cas de doublons.
+    
+    Parameters:
+    chemin_fichier (str): Chemin d'accès au fichier A3M à traiter.
+    
+    Returns:
+    None: Cette fonction génère un fichier "good.a3m" avec des identifiants de séquence ajustés si nécessaire.
+    '''
     occurrences = {}
     
-    # Parcourir le fichier pour compter les occurrences de chaque identifiant
+    # Compter les occurrences des identifiants dans le fichier A3M
     with open(chemin_fichier, 'r') as file:
         for line in file:
             if line.startswith(">"):
@@ -29,10 +79,9 @@ def traiter_fichier_a3m(chemin_fichier):
                 else:
                     occurrences[identifiant] = 1
     
-    # Dictionnaire pour stocker les nouveaux noms de transcrits
     noms_transcrits = {}
     
-    # Parcourir à nouveau le fichier pour créer de nouveaux noms de transcrits si nécessaire
+    # Générer un nouveau fichier A3M avec des identifiants ajustés pour les doublons
     with open(chemin_fichier, 'r') as input_file, open(GENE + "good.a3m", 'w') as output_file:
         for line in input_file:
             if line.startswith(">"):
@@ -49,71 +98,81 @@ def traiter_fichier_a3m(chemin_fichier):
             else:
                 output_file.write(line)
 
-
-
-
-
-
 def gap_inter(A, B):
-    index_tiret = [i+1 for i in range(len(A)-2) if A[i].isalpha() and A[i+1] == '-' and A[i+2].isalpha()]  # Trouver les indices où le motif est trouvé
-    for pos in reversed(index_tiret):  # Parcourir en sens inverse pour insérer les tirets correctement
+    '''
+    Insère des tirets dans la séquence B aux positions correspondant aux tirets présents dans la séquence A.
+    
+    Parameters:
+    A (str): La séquence de référence contenant les tirets.
+    B (str): La séquence dans laquelle les tirets doivent être insérés.
+    
+    Returns:
+    str: La séquence B ajustée avec des tirets insérés aux positions correspondantes à ceux de la séquence A.
+    '''
+    index_tiret = [i+1 for i in range(len(A)-2) if A[i].isalpha() and A[i+1] == '-' and A[i+2].isalpha()]
+    for pos in reversed(index_tiret):
         if pos < len(B):
             B = B[:pos] + '-' + B[pos:]
     return B
 
+def get_sexon_coord(gid, tid, seqFname):
+    '''
+    Extrait les coordonnées des exons à partir du fichier de séquence au format PIR en se basant sur l'identifiant du gène et du transcrit.
+    
+    Parameters:
+    gid (str): Identifiant du gène.
+    tid (str): Identifiant du transcrit.
+    seqFname (str): Chemin d'accès au fichier de séquence PIR.
+    
+    Returns:
+    list: Une liste de tuples représentant les coordonnées des exons (type d'exon, position de début, position de fin).
+    '''
+    fseq = open(seqFname)
+    lines = fseq.readlines()
+    fseq.close()
 
-# get the exon coordinates from the PIR sequence file
-def get_sexon_coord(gid,tid,seqFname):
+    i = 0
+    found = False
+    while (i < len(lines)) and (not found):
+        found = lines[i].startswith('>P1;'+gid+' '+tid)
+        i = i + 1
 
-	# open, read and close the input file
-	fseq = open(seqFname)
-	lines = fseq.readlines()
-	fseq.close()
-	# go through the file until finding the tid
-	i = 0
-	found = False
-	while (i < len(lines)) and (not found):
-		found = lines[i].startswith('>P1;'+gid+' '+tid)
-		i = i + 1
-	# if the tid was found
-	if found:
-		sex = lines[i][:-1]
-		# should be a list since they are ordered!
-		l = []
-		sexRef = sex[0]
-		startRef = 0
-		# go through the whole sequence
-		for i in range(1,len(sex)):
-			# if the sexon has just changed
-			if sex[i] != sexRef:
-				# append the previous sexon to the list
-				# +1 to the start to shift
-				# nothing to the end because we want the one before last
-				l.append((sexRef,startRef+1,i))
-				sexRef = sex[i]
-				startRef = i
-		# don't forget the last one!
-		# id only one amino acid, startRef+1 should be the last position
-		# and i should be equal to len(sex)
-		l.append((sexRef,startRef+1,i+1))
-		return l
+    if found:
+        sex = lines[i][:-1]
+        l = []
+        sexRef = sex[0]
+        startRef = 0
+        for i in range(1,len(sex)):
+            if sex[i] != sexRef:
+                l.append((sexRef,startRef+1,i))
+                sexRef = sex[i]
+                startRef = i
+        l.append((sexRef,startRef+1,i+1))
+        return l
 
-# get the sexon id from the dictionary file
 def get_sexon_id(dictFname):
+    '''
+    Extrait les identifiants des exons à partir d'un fichier de dictionnaire.
+    
+    Parameters:
+    dictFname (str): Chemin d'accès au fichier de dictionnaire contenant les identifiants des exons.
+    
+    Returns:
+    dict: Un dictionnaire où les clés sont les identifiants d'exons et les valeurs sont les noms correspondants.
+    '''
+    fdic = open(dictFname)
+    lines = fdic.readlines()
+    fdic.close()
+    d = {}
+    for line in lines:
+        words = line[:-1].split()
+        d[words[1]] = words[0]
+    return d
 
-	# open, read and close the input file
-	fdic = open(dictFname)
-	lines = fdic.readlines()
-	fdic.close()
-	d = {}
-	for line in lines:
-		words = line[:-1].split()
-		# key: symbol, value: id
-		d[words[1]] = words[0]
-	return d
 
-# Match the two last fonctions 
+
 def match_coordinates_and_ids(coordinates_list, id_dict):
+    '''Associe les coordonnées des exons avec leurs identifiants.'''
     matched_dict = {}
 
     for coord in coordinates_list:
@@ -122,6 +181,7 @@ def match_coordinates_and_ids(coordinates_list, id_dict):
             matched_dict[exon_id] = {'start': coord[1], 'end': coord[2]}
 
     return matched_dict
+
 
 def calculate_e_value(score, query_length, database_length):
     """
@@ -147,42 +207,35 @@ def calculate_e_value(score, query_length, database_length):
 
 
 def copier_si_inexistant(source, cible):
-    # Vérifie si le répertoire cible existe, sinon le crée
+    '''Copie les éléments du répertoire source vers le 
+    répertoire cible s'ils n'existent pas déjà dans ce dernier.'''
     if not os.path.exists(cible):
         os.makedirs(cible)
 
-    # Parcours de tous les éléments du répertoire source
     for element in os.listdir(source):
         chemin_source = os.path.join(source, element)
         chemin_cible = os.path.join(cible, element)
 
-        # Vérifie si l'élément n'existe pas déjà dans le répertoire cible
         if not os.path.exists(chemin_cible):
-            # Copie l'élément vers le répertoire cible
             shutil.copy(chemin_source, chemin_cible)
             print(f"{element} copié vers {cible}")
 
-def gap(chaine,start,stop):
+def gap(chaine, start, stop):
+    '''Ajuste les positions de début et de fin en 
+    tenant compte des gaps dans la chaîne.'''
     tiret_indices = []
 
-    # Parcourir chaque caractère et trouver les indices des tirets
     for i in range(len(chaine)):
         if chaine[i] == "-":
             tiret_indices.append(i)
 
     for index in tiret_indices:
         lettres_avant = chaine[:index]
-
-
         lettres_apres = chaine[index + 1:] 
 
-        # Compter le nombre de lettres dans lettres_avant (qui ne sont pas "-")
         nombre_lettres_avant = len([c for c in lettres_avant if c != "-"])
-
-        # Compter le nombre de lettres dans lettres_apres (qui ne sont pas "-")
         nombre_lettres_apres = len([c for c in lettres_apres if c != "-"])
 
-        # Comparaison et ajustement de start et stop
         if nombre_lettres_avant > nombre_lettres_apres:
             stop += 1
         elif nombre_lettres_avant < nombre_lettres_apres:
@@ -191,18 +244,17 @@ def gap(chaine,start,stop):
     return start, stop
 
 def take_out_dupli(seq):
-    # Enlever toutes les lettres minuscules de la séquence
+    '''Supprime les lettres minuscules et les tirets d'une séquence.'''
     new_seq = Seq(''.join(char for char in seq if char.isupper() or char == '-'))
     return new_seq
 
-
-
-
 def calculate_identity_percentage(seq1, seq2):
+    '''Calcule le pourcentage d'identité entre deux séquences.'''
     alignments = pairwise2.align.globalxx(seq1, seq2, one_alignment_only=True, score_only=True)
     alignment_length = max(len(seq1), len(seq2))
     identity_percentage = (alignments / alignment_length) * 100
     return identity_percentage
+
 
 def adding_sequences(sequences_a3m, sequences_msa, exon_start, exon_end, GAP, IDENTITY, exon_id, nouveau_repertoire,nbr_seq):
     # Récupérer la première séquence dans sequences_msa
@@ -287,22 +339,39 @@ def detect_signature(sequence):
 
 
 
-def adding_sequence_alt(sequences_a3m,sequences_msa,all_msa, positions,exon_start,exon_end, GAP, IDENTITY,exon_id,nouveau_repertoire,nbr_seq,SIGNIFICANT_DIFFERENCE):
+def adding_sequence_alt(sequences_a3m,sequences_msa,all_msa, positions,exon_start,exon_end, GAP, IDENTITY,exon_id,nouveau_repertoire,nbr_seq,SIGNIFICANT_DIFFERENCE,t,msa_alt_complet):
+    exon_id_alt = exon_id + "_alt"
     undecided = []
     
     first_sequence_msa = sequences_msa[0].seq  
     # Initialiser une variable pour stocker la séquence concaténée
     first_sequence_msa_alt = ""
-    
+
     # Boucler à travers la liste msa_all et concaténer les premières séquences de chaque exon
     for exon_key in all_msa:
+        sequences_msa_alt = all_msa[exon_key]
         first_sequence_msa_alt += all_msa[exon_key][0].seq
-    
-        
-    for sequence_a3m in sequences_a3m:
+
+    ### Build HMM for canonique and alternatif 
+    with tempfile.NamedTemporaryFile(mode='w+', delete=False) as temp_msa_file:
+        write_msa_to_temp_file(msa_alt_complet, temp_msa_file.name)
+        temp_msa_file_path_alt = temp_msa_file.name
+    with tempfile.NamedTemporaryFile(mode='w+', delete=False) as temp_msa_file:
+        write_msa_to_temp_file(sequences_msa, temp_msa_file.name)
+        temp_msa_file_path = temp_msa_file.name
+
+    hmm_file_alt = nouveau_repertoire + f"temp_{exon_id_alt}.hmm"
+    hmm_file = nouveau_repertoire + f"temp_{exon_id}.hmm"
+
+    build_hmm(temp_msa_file_path, hmm_file)
+    build_hmm(temp_msa_file_path_alt, hmm_file_alt)
+
+
+    for sequence_a3m in tqdm(sequences_a3m):
         # Sélectionner la séquence entre exon_start et exon_end
         selected_sequence = take_out_dupli(sequence_a3m.seq)[exon_start - 1:exon_end]
-        selected_sequence_alt = take_out_dupli(sequence_a3m.seq)[exon_start - 1: exon_start - 1+ len(first_sequence_msa_alt)]
+        selected_sequence_alt = take_out_dupli(sequence_a3m.seq)[exon_start - 1: exon_start - 1+ 
+                                                                 len(first_sequence_msa_alt)]
 
         selected_sequence = gap_inter(first_sequence_msa,selected_sequence)
         selected_sequence_alt = gap_inter(first_sequence_msa_alt,selected_sequence_alt)
@@ -315,32 +384,58 @@ def adding_sequence_alt(sequences_a3m,sequences_msa,all_msa, positions,exon_star
                 A = calculate_e_value(A_score, len(first_sequence_msa), nbr_seq)
                 B = calculate_e_value(B_score, len(first_sequence_msa_alt), nbr_seq)
                 Alpha, Beta = detect_signature(selected_sequence)
+
                 if A <= IDENTITY and B <= IDENTITY:
-                    if Alpha ==  Beta :  
-                # Ajouter la séquence uniquement si l'identité est inférieure ou égale à 60%
-                        if A < B and B - A > SIGNIFICANT_DIFFERENCE:
+                    A_real_score = score_sequence_with_hmm(hmm_file,str(selected_sequence),exon_id)
+                    B_real_score = score_sequence_with_hmm(hmm_file_alt,str(selected_sequence_alt),
+                                                            exon_id_alt)
+                    pA = math.exp(A_real_score/t)/(math.exp(A_real_score/t)+math.exp(B_real_score/t))
+                    pB = math.exp(B_real_score/t)/(math.exp(A_real_score/t)+math.exp(B_real_score/t))
+                    os.remove(nouveau_repertoire + f"score_output_{exon_id}.txt")
+                    os.remove(nouveau_repertoire + f"score_output_{exon_id_alt}.txt")
+                    if pA <= 0.47 or pA >= 0.53:
+                        if pA > pB :
                             selected_record = SeqRecord(selected_sequence, id=sequence_a3m.id ,description=f"Evalue={min(A, B)} Alpha={Alpha} Beta={Beta}")
                             sequences_msa.append(selected_record)
-                        elif B < A and A - B > SIGNIFICANT_DIFFERENCE:
+                        if pB > pA : 
                             for exon_key in all_msa:
                                 begin, end = positions[exon_key]
-                                selected_record = SeqRecord(gap_inter(first_sequence_msa_alt, take_out_dupli(sequence_a3m.seq)[begin - 1:end]), 
-                                                            id=sequence_a3m.id,description=f"Evalue={min(A, B)} Alpha={Alpha} Beta={Beta}")
+                                selected_record = SeqRecord(gap_inter(first_sequence_msa_alt, 
+                                                                    take_out_dupli(sequence_a3m.seq)[begin - 1:end]), 
+                                                                        id=sequence_a3m.id,
+                                                                        description=f"Evalue={min(A, B)} Alpha={Alpha} Beta={Beta}")
                                 all_msa[exon_key].append(selected_record)
-                        else :
-                                print(sequence_a3m.id)
-                                undecided_record = SeqRecord(selected_sequence, id=sequence_a3m.id, description=f"Evalue_A={A} Evalue_B={B} Alpha={Alpha} Beta={Beta}")
-                                undecided.append(undecided_record)
-                    else :
-                        if Alpha > Beta :
-                            selected_record = SeqRecord(selected_sequence, id=sequence_a3m.id ,description=f"Evalue={min(A, B)} Alpha={Alpha} Beta={Beta}")
-                            sequences_msa.append(selected_record)  
-                        else :
-                            for exon_key in all_msa:
-                                begin, end = positions[exon_key]
-                                selected_record = SeqRecord(gap_inter(first_sequence_msa_alt, take_out_dupli(sequence_a3m.seq)[begin - 1:end]), 
-                                                                    id=sequence_a3m.id, description=f"Evalue={min(A, B)} Alpha={Alpha} Beta={Beta}")
-                                all_msa[exon_key].append(selected_record)
+                    else : 
+                        undecided_record = SeqRecord(selected_sequence, id=sequence_a3m.id, description=f"Evalue_A={A} Evalue_B={B} Alpha={Alpha} Beta={Beta}")
+                        undecided.append(undecided_record)
+
+
+
+                #     if Alpha ==  Beta :  
+                # # Ajouter la séquence uniquement si l'identité est inférieure ou égale à 60%
+                #         if A < B and B - A > SIGNIFICANT_DIFFERENCE:
+                #             selected_record = SeqRecord(selected_sequence, id=sequence_a3m.id ,description=f"Evalue={min(A, B)} Alpha={Alpha} Beta={Beta}")
+                #             sequences_msa.append(selected_record)
+                #         elif B < A and A - B > SIGNIFICANT_DIFFERENCE:
+                #             for exon_key in all_msa:
+                #                 begin, end = positions[exon_key]
+                #                 selected_record = SeqRecord(gap_inter(first_sequence_msa_alt, take_out_dupli(sequence_a3m.seq)[begin - 1:end]), 
+                #                                             id=sequence_a3m.id,description=f"Evalue={min(A, B)} Alpha={Alpha} Beta={Beta}")
+                #                 all_msa[exon_key].append(selected_record)
+                #         else :
+                #                 print(sequence_a3m.id)
+                #                 undecided_record = SeqRecord(selected_sequence, id=sequence_a3m.id, description=f"Evalue_A={A} Evalue_B={B} Alpha={Alpha} Beta={Beta}")
+                #                 undecided.append(undecided_record)
+                #     else :
+                #         if Alpha > Beta :
+                #             selected_record = SeqRecord(selected_sequence, id=sequence_a3m.id ,description=f"Evalue={min(A, B)} Alpha={Alpha} Beta={Beta}")
+                #             sequences_msa.append(selected_record)  
+                #         else :
+                #             for exon_key in all_msa:
+                #                 begin, end = positions[exon_key]
+                #                 selected_record = SeqRecord(gap_inter(first_sequence_msa_alt, take_out_dupli(sequence_a3m.seq)[begin - 1:end]), 
+                #                                                     id=sequence_a3m.id, description=f"Evalue={min(A, B)} Alpha={Alpha} Beta={Beta}")
+                #                 all_msa[exon_key].append(selected_record)
 
 
     output_msa = nouveau_repertoire + f"msa_s_exon_{exon_id}.fasta"
@@ -352,8 +447,11 @@ def adding_sequence_alt(sequences_a3m,sequences_msa,all_msa, positions,exon_star
         output_msa = nouveau_repertoire + f"msa_s_exon_{exon_key}.fasta"
         SeqIO.write(all_msa[exon_key], output_msa, "fasta")
 
+    # os.remove(nouveau_repertoire + hmm_file)
+    # os.remove(nouveau_repertoire + hmm_file_alt)
 
 
+    
 
 def get_table_asru(ASRU, ID_exons_can):
     df = pd.read_csv(ASRU)
@@ -382,43 +480,56 @@ def get_table_asru(ASRU, ID_exons_can):
             exon_alt_df = pd.concat([exon_alt_df, pd.DataFrame({0: exon_alt})], ignore_index=True)
 
     return exon_can_df, exon_alt_df
+
+
+
 	
 def new_borne(exon_start_init, exon_end_init, exon_alt_list):
-    all_msa = {}  # Dictionnaire pour stocker les séquences MSA de chaque exon
-    positions = {}  # Dictionnaire pour stocker les positions de chaque exon
+    all_msa = {}
+    positions = {}
+    msa_alt_complet = []
+    seq_concat = {}  # Dictionnaire pour concaténer les séquences par ID
     first_sequence_msa_alt = ""
+    
     for i, exon in enumerate(exon_alt_list):
         sequences_msa = list(SeqIO.parse(msa_directory + f"msa_s_exon_{exon}.fasta", "fasta"))
         all_msa[exon] = sequences_msa
+        for seq in sequences_msa:
+            if seq.id in seq_concat:
+                seq_concat[seq.id] += str(seq.seq)
+            else:
+                seq_concat[seq.id] = str(seq.seq)
     
     for exon_key in all_msa:
-        first_sequence_msa_alt += all_msa[exon_key][0].seq
+        first_sequence_msa_alt += str(all_msa[exon_key][0].seq)
     
     for i, exon in enumerate(exon_alt_list):
         sequences_msa = list(SeqIO.parse(msa_directory + f"msa_s_exon_{exon}.fasta", "fasta"))
-        exon_start,exon_stop = gap(first_sequence_msa_alt,exon_start_init,exon_end_init)
+        # Supposons que vous avez une fonction `gap` définie ailleurs
+        exon_start, exon_stop = gap(first_sequence_msa_alt, exon_start_init, exon_end_init)
         
-        # Calculer le stop pour l'exon précédent
         if i == 0:
-            start = exon_start 
-            stop = exon_start + len(sequences_msa[0]) -1
+            start = exon_start
+            stop = exon_start + len(sequences_msa[0]) - 1
             stop_prev = stop
         else:
             start = stop_prev + 1
             stop = start + len(sequences_msa[0]) - 1
             stop_prev = stop
         
-        # Stocker les séquences MSA de cet exon
-        
-        positions[exon] = start, stop 
+        positions[exon] = start, stop
     
-    return all_msa, positions
+    # Convertir seq_concat en SeqRecord et l'ajouter à msa_alt_complet
+    for id, seq in seq_concat.items():
+        msa_alt_complet.append(SeqRecord(Seq(seq), id=id, description=""))
+    
+    return all_msa, positions, msa_alt_complet
 
 
 
 
 def process_transcript(gene_name, GAP, IDENTITY, SIGNIFICANT_DIFFERENCE,GENE, msa_directory, path_table_path, pir_file_path, dictFname, nouveau_repertoire, ASRU, 
-                       transcrit_file,query_transcrit_id,s_exon_table_path):
+                       transcrit_file,query_transcrit_id,s_exon_table_path,t):
     transcrit_file = pd.read_csv(GENE +'inter/a3m_to_PIR.csv')
     transcript_ids_list = transcrit_file['Transcript IDs'].tolist()
     gene_ids_list = transcrit_file['Gene IDs'].tolist()
@@ -459,10 +570,11 @@ def process_transcript(gene_name, GAP, IDENTITY, SIGNIFICANT_DIFFERENCE,GENE, ms
             sequences_a3m = list(SeqIO.parse(a3m_fichier, "fasta"))[1:]
             nbr_seq = len(sequences_a3m)
 
-            for fichier in glob.glob(msa_directory + "msa_s_exon_*.fasta"):
+            for fichier in tqdm(glob.glob(msa_directory + "msa_s_exon_*.fasta")):
                 match = re.search(r"exon_(.*?)\.fasta", fichier)
                 if match:
                     exon_id = match.group(1)
+                    print("exon : ", exon_id)
                     not_empty = verify_exon(exon_id, query_transcrit_id, s_exon_table_path)
                     if exon_id in ID_exons_can and not not_empty:
                         list_empty.append(exon_id)
@@ -484,15 +596,16 @@ def process_transcript(gene_name, GAP, IDENTITY, SIGNIFICANT_DIFFERENCE,GENE, ms
                             L  = [exon_id,exon_alt_list]
                             exons_similaire[exon_id] = exon_alt_list
                             asru.append(L)
-                            all_msa, positions = new_borne(exon_start_init, exon_end_init, exon_alt_list)
-
+                            all_msa, positions,msa_alt_complet = new_borne(exon_start_init, exon_end_init, exon_alt_list)
                             adding_sequence_alt(sequences_a3m,
                                                 sequences_msa,
                                                 all_msa, positions,
                                                 exon_start,
                                                 exon_end, GAP, 
                                                 IDENTITY,
-                                                exon_id,nouveau_repertoire,nbr_seq,SIGNIFICANT_DIFFERENCE)
+                                                exon_id,nouveau_repertoire,nbr_seq,SIGNIFICANT_DIFFERENCE,t,msa_alt_complet)
+                            
+
 
                         else:
                             adding_sequences(sequences_a3m, sequences_msa, 
@@ -609,6 +722,7 @@ if __name__ == "__main__":
     GAP = 70
     IDENTITY = 1e-4 
     SIGNIFICANT_DIFFERENCE = 1e-5
+    t= 100
 
     GENE = "DATA/" + gene_name + "/"
     msa_directory = GENE + "thoraxe/msa/"
@@ -619,6 +733,7 @@ if __name__ == "__main__":
     ASRU = GENE + f"antoine_data/{gene_name}_ASRUs_table.csv"
     s_exon_table_path = GENE + "thoraxe/s_exon_table.csv"
     inter_path = GENE + "inter/"
+    ases_path = GENE + "thoraxe/ases_table.csv"
 
     transcrit_file = pd.read_csv(inter_path + 'a3m_to_PIR.csv')
 
@@ -626,7 +741,7 @@ if __name__ == "__main__":
         traiter_fichier_a3m(a3m_fichier)
 
     exon_path, exon_similaire = process_transcript(gene_name, GAP, IDENTITY,SIGNIFICANT_DIFFERENCE, GENE, msa_directory, path_table_path, pir_file_path, 
-                       dictFname, nouveau_repertoire, ASRU, transcrit_file, query_transcrit_id,s_exon_table_path)
+                       dictFname, nouveau_repertoire, ASRU, transcrit_file, query_transcrit_id,s_exon_table_path,t)
         
 
     s_exon_augmentation(nouveau_repertoire,s_exon_table_path)

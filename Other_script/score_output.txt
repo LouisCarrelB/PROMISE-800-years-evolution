@@ -1,0 +1,14 @@
+#                                                               --- full sequence ---- --- best 1 domain ---- --- domain number estimation ----
+# target name        accession  query name           accession    E-value  score  bias   E-value  score  bias   exp reg clu  ov env dom rep inc description of target
+#------------------- ---------- -------------------- ---------- --------- ------ ----- --------- ------ -----   --- --- --- --- --- --- --- --- ---------------------
+new_sequence         -          msa_s_exon_17_0      -            2.6e-24   71.0   5.7   2.7e-24   71.0   5.7   1.0   1   0   0   1   1   1   1 -
+#
+# Program:         hmmsearch
+# Version:         3.4 (Aug 2023)
+# Pipeline mode:   SEARCH
+# Query file:      temp.hmm
+# Target file:     temp_sequence.fasta
+# Option settings: /Users/louiscarrel/Downloads/hmmer-3.4/src/hmmsearch --tblout score_output.txt temp.hmm temp_sequence.fasta 
+# Current dir:     /Users/louiscarrel/Documents/Alignement_Project/largescale_kinase/Other_script
+# Date:            Tue Apr  9 15:43:53 2024
+# [ok]

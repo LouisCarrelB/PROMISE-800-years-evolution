@@ -1,0 +1,14 @@
+#                                                               --- full sequence ---- --- best 1 domain ---- --- domain number estimation ----
+# target name        accession  query name           accession    E-value  score  bias   E-value  score  bias   exp reg clu  ov env dom rep inc description of target
+#------------------- ---------- -------------------- ---------- --------- ------ ----- --------- ------ -----   --- --- --- --- --- --- --- --- ---------------------
+new_sequence         -          tmpfjhi7hwy          -            2.1e-23   68.1   2.5   2.2e-23   68.1   2.5   1.0   1   0   0   1   1   1   1 -
+#
+# Program:         hmmsearch
+# Version:         3.4 (Aug 2023)
+# Pipeline mode:   SEARCH
+# Query file:      DATA/ENSG00000107643/New_alignement/temp_17_0.hmm
+# Target file:     DATA/ENSG00000107643/New_alignement/temp_sequence_17_0.fasta
+# Option settings: /Users/louiscarrel/Downloads/hmmer-3.4/src/hmmsearch --tblout score_output_17_0.txt DATA/ENSG00000107643/New_alignement/temp_17_0.hmm DATA/ENSG00000107643/New_alignement/temp_sequence_17_0.fasta 
+# Current dir:     /Users/louiscarrel/Documents/Alignement_Project/largescale_kinase
+# Date:            Tue Apr  9 17:56:33 2024
+# [ok]
