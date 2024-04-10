@@ -410,34 +410,6 @@ def adding_sequence_alt(sequences_a3m,sequences_msa,all_msa, positions,exon_star
                         undecided.append(undecided_record)
 
 
-
-                #     if Alpha ==  Beta :  
-                # # Ajouter la séquence uniquement si l'identité est inférieure ou égale à 60%
-                #         if A < B and B - A > SIGNIFICANT_DIFFERENCE:
-                #             selected_record = SeqRecord(selected_sequence, id=sequence_a3m.id ,description=f"Evalue={min(A, B)} Alpha={Alpha} Beta={Beta}")
-                #             sequences_msa.append(selected_record)
-                #         elif B < A and A - B > SIGNIFICANT_DIFFERENCE:
-                #             for exon_key in all_msa:
-                #                 begin, end = positions[exon_key]
-                #                 selected_record = SeqRecord(gap_inter(first_sequence_msa_alt, take_out_dupli(sequence_a3m.seq)[begin - 1:end]), 
-                #                                             id=sequence_a3m.id,description=f"Evalue={min(A, B)} Alpha={Alpha} Beta={Beta}")
-                #                 all_msa[exon_key].append(selected_record)
-                #         else :
-                #                 print(sequence_a3m.id)
-                #                 undecided_record = SeqRecord(selected_sequence, id=sequence_a3m.id, description=f"Evalue_A={A} Evalue_B={B} Alpha={Alpha} Beta={Beta}")
-                #                 undecided.append(undecided_record)
-                #     else :
-                #         if Alpha > Beta :
-                #             selected_record = SeqRecord(selected_sequence, id=sequence_a3m.id ,description=f"Evalue={min(A, B)} Alpha={Alpha} Beta={Beta}")
-                #             sequences_msa.append(selected_record)  
-                #         else :
-                #             for exon_key in all_msa:
-                #                 begin, end = positions[exon_key]
-                #                 selected_record = SeqRecord(gap_inter(first_sequence_msa_alt, take_out_dupli(sequence_a3m.seq)[begin - 1:end]), 
-                #                                                     id=sequence_a3m.id, description=f"Evalue={min(A, B)} Alpha={Alpha} Beta={Beta}")
-                #                 all_msa[exon_key].append(selected_record)
-
-
     output_msa = nouveau_repertoire + f"msa_s_exon_{exon_id}.fasta"
     SeqIO.write(sequences_msa, output_msa, "fasta")
 
