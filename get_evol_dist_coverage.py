@@ -224,8 +224,8 @@ if __name__ == "__main__":
     if args.species is None:
         args.species = 'Homo_sapiens' 
 
-    tree_fname = args.gid+'/list_species.nwk'
-    s_exon_fname = args.gid+'/thoraxe/s_exon_table_a3m.csv'
+    tree_fname = args.gid+'/list_species.nwk.txt'
+    s_exon_fname = args.gid+'/thoraxe/s_exon_table.csv'
     events_fname = args.gid+'/thoraxe/ases_table.csv'
 
     bins=[10,50,200,400,600,800,1000,1500]
