@@ -34,7 +34,7 @@ def gene(organism_info) :
     return gene
 
 
-uniprot_id = "A0A3Q1EHX5"  # Remplacez par votre identifiant UniProt
+uniprot_id = "A0A0B6YJQ1"  # Remplacez par votre identifiant UniProt
 organism_name, seventh_word_lineage, prot = get_organism_info(uniprot_id)
 
 if organism_name and seventh_word_lineage:

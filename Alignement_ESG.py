@@ -14,6 +14,8 @@ import math
 import csv 
 import tempfile
 from tqdm import tqdm 
+import requests
+import json
 
 
 def write_msa_to_temp_file(msa_object, temp_file_path):
@@ -367,7 +369,7 @@ def adding_sequence_alt(sequences_a3m,sequences_msa,all_msa, positions,exon_star
     build_hmm(temp_msa_file_path_alt, hmm_file_alt)
 
 
-    for sequence_a3m in tqdm(sequences_a3m):
+    for sequence_a3m in tqdm(sequences_a3m, desc="Alignement to exon alt and can"):
         # Sélectionner la séquence entre exon_start et exon_end
         selected_sequence = take_out_dupli(sequence_a3m.seq)[exon_start - 1:exon_end]
         selected_sequence_alt = take_out_dupli(sequence_a3m.seq)[exon_start - 1: exon_start - 1+ 
@@ -395,7 +397,7 @@ def adding_sequence_alt(sequences_a3m,sequences_msa,all_msa, positions,exon_star
                     os.remove(nouveau_repertoire + f"score_output_{exon_id_alt}.txt")
                     if pA <= 0.47 or pA >= 0.53:
                         if pA > pB :
-                            selected_record = SeqRecord(selected_sequence, id=sequence_a3m.id ,description=f"Evalue={min(A, B)} Alpha={Alpha} Beta={Beta}")
+                            selected_record = SeqRecord(selected_sequence, id=sequence_a3m.id ,description=f"Evalue={min(A, B)} Alpha={Alpha} Beta={Beta} pA={pA} pB={pB} " )
                             sequences_msa.append(selected_record)
                         if pB > pA : 
                             for exon_key in all_msa:
@@ -403,10 +405,10 @@ def adding_sequence_alt(sequences_a3m,sequences_msa,all_msa, positions,exon_star
                                 selected_record = SeqRecord(gap_inter(first_sequence_msa_alt, 
                                                                     take_out_dupli(sequence_a3m.seq)[begin - 1:end]), 
                                                                         id=sequence_a3m.id,
-                                                                        description=f"Evalue={min(A, B)} Alpha={Alpha} Beta={Beta}")
+                                                                        description=f"Evalue={min(A, B)} Alpha={Alpha} Beta={Beta} pA={pA} pB={pB} ")
                                 all_msa[exon_key].append(selected_record)
                     else : 
-                        undecided_record = SeqRecord(selected_sequence, id=sequence_a3m.id, description=f"Evalue_A={A} Evalue_B={B} Alpha={Alpha} Beta={Beta}")
+                        undecided_record = SeqRecord(selected_sequence, id=sequence_a3m.id, description=f"Evalue_A={A} Evalue_B={B} Alpha={Alpha} Beta={Beta} pA={pA} pB={pB} ")
                         undecided.append(undecided_record)
 
 
@@ -546,7 +548,6 @@ def process_transcript(gene_name, GAP, IDENTITY, SIGNIFICANT_DIFFERENCE,GENE, ms
                 match = re.search(r"exon_(.*?)\.fasta", fichier)
                 if match:
                     exon_id = match.group(1)
-                    print("exon : ", exon_id)
                     not_empty = verify_exon(exon_id, query_transcrit_id, s_exon_table_path)
                     if exon_id in ID_exons_can and not not_empty:
                         list_empty.append(exon_id)
@@ -603,7 +604,6 @@ def process_transcript(gene_name, GAP, IDENTITY, SIGNIFICANT_DIFFERENCE,GENE, ms
 
 
 
-
 def s_exon_augmentation(repertoire, s_exon_table_path):
     output_csv_path = os.path.splitext(s_exon_table_path)[0] + "_a3m.csv"  # Créer le nom de fichier de sortie
     
@@ -626,12 +626,68 @@ def s_exon_augmentation(repertoire, s_exon_table_path):
                 chemin_fichier = os.path.join(repertoire, fichier)
                 identifiant_exon = fichier.split("_exon_")[1].rstrip(".fasta")
                 for record in SeqIO.parse(chemin_fichier, "fasta"):
-                    nom_transcrit = record.id.split()[0][0:]  # Obtenez l'identifiant du transcrit après ">"
+                    nom_transcrit = record.id.split()[0][0:]
+
                     if not nom_transcrit.startswith("ENS"):
-                        writer.writerow({'TranscriptIDCluster': nom_transcrit,'GeneID': nom_transcrit, 'S_exonID': identifiant_exon})
-
-
                         
+                        
+                        new_row = {
+                            'TranscriptIDCluster': nom_transcrit,
+                            'GeneID': nom_transcrit,
+                            'S_exonID': identifiant_exon,
+                        }
+                        writer.writerow(new_row)
+    return output_csv_path
+    
+
+def get_uniref_id(full_id):
+    """Extrait l'identifiant UniProt depuis un identifiant UniRef complet."""
+    return full_id.split('_')[1] if '_' in full_id else full_id
+
+def get_organism_name(organism_info):
+    names = organism_info.get("names", [])
+    for name_entry in names:
+        if name_entry.get("type", "") == "scientific":
+            return name_entry.get("value", "")
+    return None
+
+def get_organism_info(uniprot_id):
+    if uniprot_id.startswith("Uni"):
+        url = f"https://www.ebi.ac.uk/proteins/api/proteins/{get_uniref_id(uniprot_id)}"
+    else:
+        url = f"https://www.ebi.ac.uk/proteins/api/proteins/{uniprot_id}"
+
+    response = requests.get(url)
+
+    if response.status_code == 200:
+        protein_data = response.json()
+        organism_info = protein_data.get("organism", {}) 
+        organism_name = get_organism_name(organism_info)
+        return organism_name
+
+    return None
+
+def get_species_from_msa(msa_file):
+    species_dict = {}
+    try:
+        # Utilisation de SeqIO.parse pour gérer des séquences de tailles différentes
+        for record in tqdm(SeqIO.parse(msa_file, "fasta"),desc= "Dict for species"):
+            uniprot_id = record.id
+            if uniprot_id:
+                organism_name = get_organism_info(uniprot_id)  # Appel à la fonction pour obtenir le nom de l'espèce
+
+                if organism_name:
+                    species_dict[uniprot_id] = organism_name
+                else:
+                    species_dict[uniprot_id] = "Unknown"  # Marquer comme "Unknown" si pas d'info d'espèce
+            else:
+                species_dict[record.id] = "Unknown"  # Marquer comme "Unknown" si pas d'ID UniProt valide
+
+    except Exception as e:
+        print(f"Une erreur s'est produite: {e}")
+    
+    return species_dict
+
 
 
 def rank(table_path, path, exon_similaire):
@@ -683,6 +739,74 @@ def rank(table_path, path, exon_similaire):
         writer.writeheader()
         writer.writerows(table)
 
+
+
+def enrich_species_information(output_csv_path):
+    gene_ids = set()
+    gene_to_species = {}
+    
+    # Lecture des données pour collecter les GeneID uniques
+    with open(output_csv_path, 'r') as csvfile:
+        reader = csv.DictReader(csvfile)
+        rows = [row for row in reader]
+        for row in rows:
+            if row['GeneID'] and not row['GeneID'].startswith("ENS"):
+                gene_ids.add(row['GeneID'])
+
+    # Appels à l'API pour obtenir les noms d'espèces
+    for gene_id in tqdm(gene_ids,desc="using API of Uniprot for species"):
+        species_name = get_organism_info(gene_id) or "Unknown"
+        gene_to_species[gene_id] = species_name
+
+    # Ré-écriture de la table avec les informations d'espèces complétées
+    with open(output_csv_path, 'w', newline='') as csvfile:
+        fieldnames = reader.fieldnames
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        writer.writeheader()
+        
+        for row in rows:
+            if row['GeneID'] in gene_to_species:
+                row['Species'] = gene_to_species[row['GeneID']]
+            writer.writerow(row)
+
+
+def update_ases_table(dataframe_path, ases_table_path):
+    ases_df = pd.read_csv(ases_table_path, nrows=1)
+    dataframe = pd.read_csv(dataframe_path)
+    alt_path = ases_df['AlternativePath'].iloc[0]
+    can_path = ases_df['CanonicalPath'].iloc[0]
+    
+    def find_gene_ids_with_path(s_exon_path):
+        path_segments = s_exon_path.split('/')
+        valid_gene_ids = set(dataframe['GeneID'])
+        
+        for segment in path_segments:
+            current_segment_gene_ids = set(dataframe[dataframe['S_exonID'] == segment]['GeneID'])
+            valid_gene_ids.intersection_update(current_segment_gene_ids)
+        
+        filtered_ids = [gene_id for gene_id in valid_gene_ids if not gene_id.startswith('ENS')]
+        return '/'.join(filtered_ids)  # Convertir la liste en chaîne formatée
+    
+    alt_gene_ids = find_gene_ids_with_path(alt_path)
+    can_gene_ids = find_gene_ids_with_path(can_path)
+    
+    # Calculer les GeneID communs aux deux listes
+    common_gene_ids = '/'.join(set(alt_gene_ids.split('/')) & set(can_gene_ids.split('/')))
+    
+    # Ajouter les résultats aux colonnes spécifiques de ases_df
+    ases_df['CanonicalPathGenes'] = ases_df.get('CanonicalPathGenes', '') + can_gene_ids
+    ases_df['AlternativePathGenes'] = ases_df.get('AlternativePathGenes', '') + alt_gene_ids
+    ases_df['CommonGenes'] = ases_df.get('CommonGenes', '') + common_gene_ids
+    
+    # Sauvegarder les modifications dans un nouveau fichier
+    output_path = ases_table_path.replace('ases_table.csv', 'ases_table_a3m.csv')
+    ases_df.to_csv(output_path, index=False)
+
+    return alt_gene_ids, can_gene_ids, common_gene_ids
+
+
+
+
 if __name__ == "__main__":
 
     if len(sys.argv) != 3:
@@ -708,18 +832,21 @@ if __name__ == "__main__":
     ases_path = GENE + "thoraxe/ases_table.csv"
 
     transcrit_file = pd.read_csv(inter_path + 'a3m_to_PIR.csv')
-
+ 
     for a3m_fichier in glob.glob(GENE +"other_data/" + "*.a3m"):
         traiter_fichier_a3m(a3m_fichier)
+        
 
     exon_path, exon_similaire = process_transcript(gene_name, GAP, IDENTITY,SIGNIFICANT_DIFFERENCE, GENE, msa_directory, path_table_path, pir_file_path, 
                        dictFname, nouveau_repertoire, ASRU, transcrit_file, query_transcrit_id,s_exon_table_path,t)
-        
-
-    s_exon_augmentation(nouveau_repertoire,s_exon_table_path)
+     
+    output_csv_path=s_exon_augmentation(nouveau_repertoire,s_exon_table_path)
+    enrich_species_information(output_csv_path)
 
     new_s_exon_table_path = GENE + "thoraxe/s_exon_table_a3m.csv"
     rank(new_s_exon_table_path,exon_path,exon_similaire)
+    update_ases_table(s_exon_table_path, ases_path)
+
 
 
 

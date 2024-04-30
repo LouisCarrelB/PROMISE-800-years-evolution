@@ -47,8 +47,8 @@ def read_gene_data(file_path, row_number, species_dict):
     return result_df
 
 # Chemins des fichiers - Assurez-vous que les chemins sont corrects
-file_path = 'ENSG00000107643/thoraxe/ases_table.csv'
-exon_file = 'ENSG00000107643/thoraxe/s_exon_table.csv'
+file_path = 'ENSG00000107643/thoraxe_2/ases_table.csv'
+exon_file = 'ENSG00000107643/thoraxe_2/s_exon_table.csv'
 
 # Construire le dictionnaire d'espèces
 species_dict = build_species_dict(exon_file)
@@ -58,4 +58,4 @@ row_number = 0
 output_table = read_gene_data(file_path, row_number, species_dict)
 print(output_table)
 
-output_table.to_csv('ENSG00000107643/thoraxe/species_path_table.tsv', sep='\t', index=False, columns=['species', 'index'])
+output_table.to_csv('ENSG00000107643/thoraxe_2/species_path_table.tsv', sep='\t', index=False, columns=['species', 'index'])

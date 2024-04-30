@@ -58,23 +58,26 @@ def extract_uni_id(sequence_id):
         except ValueError:
             return None
 
+
+
+
 def get_species_from_msa(msa_file):
+    species_dict = {}
     try:
         alignments = AlignIO.read(msa_file, "fasta")
-        species_set = set()
 
         for record in alignments:
-            uniprot_id = extract_uni_id(record.id)
-            organism_name = get_organism_name(uniprot_id)
+            organism_name = get_organism_info(record.id)  # Assurez-vous que cette fonction retourne le nom de l'espèce
 
             if organism_name:
-                species_set.add(organism_name)
-
-        return list(species_set)
+                species_dict[record.id] = organism_name
+            else:
+                species_dict[record.id] = "Unknown"  # Ajouter "Unknown" si aucun nom d'organisme n'est trouvé
 
     except Exception as e:
         print(f"Une erreur s'est produite: {e}")
-        return []
+    
+    return species_dict
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:

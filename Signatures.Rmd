@@ -26,16 +26,31 @@ readAli <- function(chain) {
 }
 
 # Chemin du répertoire contenant les fichiers FASTA
-file_path <- paste0("DATA/",GENE,"/New_alignement/")
+file_path <- paste0(GENE,"/thoraxe_2/msa/")
 file_list <- list.files(path = file_path, pattern = "\\.fasta$", full.names = TRUE)
 
 # Lecture des fichiers d'alignement
-ali_can<- readAli(paste0(file_path, "msa_s_exon_17_0.fasta"))
+ali_can1<- readAli(paste0(file_path, "msa_s_exon_22_18.fasta"))
+ali_can2 <- readAli(paste0(file_path, "msa_s_exon_22_19.fasta"))
+ali_can3 <- readAli(paste0(file_path, "msa_s_exon_22_20.fasta"))
 
-ali_alt1 <- readAli(paste0(file_path, "msa_s_exon_17_1.fasta"))
-ali_alt2 <- readAli(paste0(file_path, "msa_s_exon_17_2.fasta"))
 
-ali_alt <- cbind(ali_alt1,ali_alt2)
+ali_alt1 <- readAli(paste0(file_path, "msa_s_exon_22_13.fasta"))
+ali_alt2 <- readAli(paste0(file_path, "msa_s_exon_22_14.fasta"))
+ali_alt3 <- readAli(paste0(file_path, "msa_s_exon_22_15.fasta"))
+names_can1 <- rownames(ali_can1)
+names_can2 <- rownames(ali_can2)
+names_can3 <- rownames(ali_can3)
+
+# Identifier les noms communs
+common_names <- intersect(intersect(names_can1, names_can2), names_can3)
+
+ali_can1_filtered <- ali_can1[common_names, , drop = FALSE]
+ali_can2_filtered <- ali_can2[common_names, , drop = FALSE]
+ali_can3_filtered <- ali_can3[common_names, , drop = FALSE]
+ali_can <- cbind(ali_can1_filtered, ali_can2_filtered, ali_can3_filtered)
+ali_alt <- cbind(ali_alt1, ali_alt2, ali_alt3)
+ali_alt <- ali_alt[, -1] 
 # if MAPK8 cbind 17_1 and 17_2
 
 # Fonction pour regrouper les lettres spécifiées par ligne

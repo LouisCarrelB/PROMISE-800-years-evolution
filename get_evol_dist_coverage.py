@@ -1,4 +1,4 @@
-# author: Elodie Laine
+# authors: Elodie Laine, Louis Carrel-Billiard 
 # date of creation: April 4 2024
 # purpose: compute the species coverage of s-exons and events detected by ThorAxe
 # accounting for their evolutionary distances to a reference species (human, by default)
@@ -15,13 +15,17 @@
 # WARNING: presence of an s-exon in a species does not imply the associated sequence 
 # fits well with the other sequences from the other species...
 
+
+
+### 
 from Bio import Phylo
 import argparse
 import pandas as pd
 from Bio import BiopythonWarning
 import warnings
 import bisect
-
+import requests
+from tqdm import tqdm 
 def get_distances(tree_fname, species_ref):
     # parse the tree file and builds the tree
     tree = Phylo.read(tree_fname, "newick")
@@ -208,50 +212,226 @@ def write_results_event(event_l, fname, bins=[10,50,200,400,600,800,1000,1500]):
 						f.write(str(i+1)+','+labels[k]+','+str(dist)+',0\n')
 
 
+def standardize_species_names(file_path):
+    # Charger le fichier CSV
+    df = pd.read_csv(file_path)
+    
+    # Vérifier si la colonne "Species" existe
+    if 'Species' in df.columns:
+        # Standardiser les noms des espèces
+        df['Species'] = df['Species'].apply(lambda x: x.lower().replace(' ', '_'))
+        
+        # Enregistrer le fichier modifié
+        df.to_csv(file_path, index=False)
+        print("Les noms des espèces ont été standardisés.")
+    else:
+        print("La colonne 'Species' n'existe pas dans le fichier.")
+
+
+
+def adjust_index(row):
+    if row['Ambigue'] == 'True':
+        if row['Index'] == 'Not_in_path':
+            return 'Ambiguous'
+        elif row['Index'] in ['can', 'alt', 'both']:
+            return row['Index'] + '_and_ambi'
+    return row['Index']
+
+
+
+def capitalize_and_format(species_name):
+    if species_name == "":
+        return ""  # Retourner une chaîne vide si l'entrée est vide
+    if species_name.lower() == "blastocystis hominis":
+        formatted_name = species_name.replace(' ', '_').capitalize()
+    else:
+        formatted_name = species_name[0].upper() + species_name[1:]
+    return formatted_name
+
+
+def format_species_names(input_file_path, output_file_path):
+    # Charger le fichier CSV avec la détection de la tabulation comme séparateur
+    df = pd.read_csv(input_file_path, sep='\t')
+    
+    # Transformer les noms des espèces
+    df['Species'] = df['Species'].apply(lambda x: ' '.join(word.capitalize() for word in x.split('_')))
+    
+    # Créer un nouveau DataFrame contenant uniquement la colonne "Species"
+    new_df = df[['Species']]
+    
+    # Enregistrer le nouveau DataFrame dans un fichier CSV sans la colonne "Index"
+    new_df.to_csv(output_file_path, index=False)
+
+
+
+
+def get_uniref_id(full_id):
+    """Extrait l'identifiant UniProt depuis un identifiant UniRef complet."""
+    return full_id.split('_')[1] if '_' in full_id else full_id
+
+def get_organism_name(organism_info):
+    names = organism_info.get("names", [])
+    for name_entry in names:
+        if name_entry.get("type", "") == "scientific":
+            return name_entry.get("value", "")
+    return None
+
+def get_organism_info(uniprot_id):
+    if uniprot_id.startswith("Uni"):
+        url = f"https://www.ebi.ac.uk/proteins/api/proteins/{get_uniref_id(uniprot_id)}"
+    else:
+        url = f"https://www.ebi.ac.uk/proteins/api/proteins/{uniprot_id}"
+    response = requests.get(url)
+    if response.status_code == 200:
+        protein_data = response.json()
+        organism_info = protein_data.get("organism", {})
+        organism_name = get_organism_name(organism_info)
+        return organism_name
+    return None
+
+def read_msa_and_get_organisms(filename):
+    organism_list = []
+    with open(filename, 'r') as file:
+        for line in tqdm(file, desc=  "Looking for species in undecided sequences"):
+            if line.startswith('>'):
+                uniprot_id = line.split()[0][1:]  # Assume ID follows '>'
+                organism_name = get_organism_info(uniprot_id)
+                if organism_name:
+                    organism_list.append(organism_name)
+    return organism_list
+
+
 if __name__ == "__main__":
-    
-    def arg_parser():  # Parser implementation
 
-        parser = argparse.ArgumentParser(prog='get_evol_dist_coverage.py',
-                                         epilog='get_evol_dist_coverage.py --gid ENSG00000107643 --species Homo_sapiens',
-                                         formatter_class=argparse.RawDescriptionHelpFormatter)
-        parser.add_argument('--gid', help='Ensembl gene identifier, eg: ENSG00000107643')
-        parser.add_argument('--species', help='Reference species, eg: Homo_sapiens')
-        return parser.parse_args()
+	def arg_parser():  # Parser implementation
+		parser = argparse.ArgumentParser(prog='get_evol_dist_coverage.py',
+											epilog='get_evol_dist_coverage.py --gid ENSG00000107643 --species Homo_sapiens',
+											formatter_class=argparse.RawDescriptionHelpFormatter)
+		parser.add_argument('--gid', help='Ensembl gene identifier, eg: ENSG00000107643')
+		parser.add_argument('--species', help='Reference species, eg: Homo_sapiens')
+		return parser.parse_args()
 
-    # parse and config arguments
-    args = arg_parser()
-    if args.species is None:
-        args.species = 'Homo_sapiens' 
+	# parse and config arguments
+	args = arg_parser()
+	if args.species is None:
+		args.species = 'Homo_sapiens' 
 
-    tree_fname = args.gid+'/list_species.nwk.txt'
-    s_exon_fname = args.gid+'/thoraxe/s_exon_table.csv'
-    events_fname = args.gid+'/thoraxe/ases_table.csv'
+	tree_fname = args.gid+'/list_species.nwk.txt'
+	s_exon_fname = args.gid+'/thoraxe/s_exon_table_a3m.csv'
+	events_fname = args.gid+'/thoraxe/ases_table_a3m.csv'
+	bins = [10,50,200,400,600,800,1000,1500]
+	# Utiliser la fonction
+	standardize_species_names(s_exon_fname)
+	# # get the evolutionary distances of each species wrt the reference species (human by default)
+	# dist_d = get_distances(tree_fname, args.species)
+	# # print(dist_d)
+	# max_val = max(dist_d.values())
+	# print('Max evolutionary distance:', max_val)
+	# bins_d, counts_tot = discretize(dist_d, bins)
+	# # get the list of species where each s-exon is present
+	species_d, species_gene_d = get_species_per_sex(s_exon_fname)
+	
+	
 
-    bins=[10,50,200,400,600,800,1000,1500]
+	# # s-exon coverage
+	# sex_d = calc_evol_cov_s_exons(species_d, bins_d, counts_tot)
+	
+	# fout = args.gid + '/thoraxe_2/s_exon_evol_cov.csv'
+	# write_results_sex(sex_d, fout, bins)
 
-    # get the evolutionary distances of each species wrt the reference species (human by default)
-    dist_d = get_distances(tree_fname,args.species)
-    #print(dist_d)
-    max_val = max(dist_d.values())
-    print('Max evolutionary distance:', max_val)
-    bins_d, counts_tot = discretize(dist_d,bins)
-    # get the list of species where each s-exon is present
-    species_d, species_gene_d = get_species_per_sex(s_exon_fname)
+	# # event coverage from the geneIds indicated in ThorAxe output
+	# event_l = calc_evol_cov_events(events_fname, species_gene_d, bins_d, counts_tot)
+	
+	# fout = args.gid + '/thoraxe_2/events_evol_cov.csv'
+	# write_results_event(event_l, fout, bins)
 
-    # s-exon coverage
-    sex_d = calc_evol_cov_s_exons(species_d, bins_d, counts_tot)
-    fout = args.gid+'/thoraxe/s_exon_evol_cov.csv'
-    write_results_sex(sex_d, fout, bins)
+		# event coverage by directly looking at the representation of s-exons sets (subpaths)
+	event_l = get_species_per_subpath(events_fname, species_d)
+	firstevent = event_l[0]
+	
 
-    # event coverage from the geneIds indicated in ThorAxe output
-    event_l = calc_evol_cov_events(events_fname, species_gene_d, bins_d, counts_tot)
-    fout = args.gid+'/thoraxe/events_evol_cov.csv'
-    write_results_event(event_l, fout, bins)
+	# event_l = calc_evol_cov_events2(event_l, bins_d, counts_tot)
+	# print(event_l)
+	# fout = args.gid + '/thoraxe_2/events_evol_cov_from_sex_table.csv'
+	# write_results_event(event_l, fout, bins)
+	# df = pd.read_csv(s_exon_fname)
+	# print(df.columns)  # Ceci affichera les noms des colonnes dans la console
 
-    # event coverage by directly looking at the representation of s-exons sets (subpaths)
-    event_l = get_species_per_subpath(events_fname, species_d)
-    event_l = calc_evol_cov_events2(event_l, bins_d, counts_tot)
-    fout = args.gid+'/thoraxe/events_evol_cov_from_sex_table.csv'
-    write_results_event(event_l, fout, bins)
-    
+	
+	
+	
+############# ADDING FROM LOUIS ASES
+	# Créer un dictionnaire pour enregistrer les clés associées à chaque espèce
+	## Ambigues :
+	filename = args.gid+"/inter/undecided_sequences_17_0.fasta"
+	ambigue = read_msa_and_get_organisms(filename)
+	ambigue = [s.lower().replace(' ', '_') for s in ambigue]
+
+	print(ambigue)
+	species_keys = {}
+	output_filename = args.gid + '/filtered_species_for_pastml.tsv'
+	# Itérer sur chaque paire clé-ensemble du dictionnaire
+	for key, species_set in firstevent.items():
+		for species in species_set:
+			if species in species_keys:
+				species_keys[species].add(key)
+			else:
+				species_keys[species] = {key}
+
+	# Créer une liste pour stocker les tuples (index, espèce)
+	data = []
+
+	# Itérer sur le dictionnaire species_keys pour créer les données finales
+	for species, keys in species_keys.items():
+		index_value = 'both' if len(keys) > 1 else list(keys)[0]
+		data.append((index_value, species))
+
+	# Convertir en DataFrame
+	df = pd.DataFrame(data, columns=['Index', 'Species'])
+
+	# Présumant que args.gid est une variable contenant le chemin du dossier
+	gid_path = args.gid  # Remplacez ceci par la valeur réelle de args.gid
+	output_file_path = f"{gid_path}/filtered_species_for_pastml.csv"
+
+	
+	species = set()
+	for value_set in species_d.values():
+		species.update(value_set)
+	existing_species = set(df['Species'])
+
+	# Déterminer les espèces manquantes
+	missing_species = species - existing_species
+	print(species)
+	# Créer les nouvelles lignes pour les espèces manquantes
+	new_rows = [{'Index': 'Not_in_path', 'Species': sp} for sp in missing_species]
+
+	# Ajouter les nouvelles lignes au DataFrame existant
+	df = pd.concat([df, pd.DataFrame(new_rows)], ignore_index=True)
+	
+
+
+
+	df['Ambigue'] = df['Species'].apply(lambda x: 'True' if x in ambigue else 'False')
+	ambigue_species_not_in_df = set(ambigue) - set(df['Species'])
+	new_rows_ambigue = [{'Index': 'Not_in_path', 'Species': sp, 'Ambigue': 'True'} for sp in ambigue_species_not_in_df]
+	df = pd.concat([df, pd.DataFrame(new_rows_ambigue)], ignore_index=True)
+
+	df['Index'] = df.apply(adjust_index, axis=1)
+
+	df = df.drop(columns=['Ambigue'])
+	print(df)
+	
+
+
+
+	df['Species'] = df['Species'].apply(capitalize_and_format)
+	
+
+	df.to_csv(output_filename, sep='\t', index=False, columns=['Species', 'Index'])
+
+	species_path =  args.gid + '/Species_list_time_tree.csv'
+	format_species_names(output_filename, species_path)
+
+
+	
+
