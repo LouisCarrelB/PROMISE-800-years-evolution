@@ -54,7 +54,7 @@ def main():
     sequences = lire_a3m(args.chemin_fichier_a3m)
     insertions = trouver_insertions(sequences)
     clusters, insertions = cluster_insertions(insertions)
-    clusters_filtrés = filtrer_par_taille(clusters, insertions)
+    clusters_filtrés = filtrer_par_taille(clusters, insertions)                                                                     
     for cluster_id, ins in clusters_filtrés.items():
         print(f"Cluster {cluster_id}: {ins}")
 

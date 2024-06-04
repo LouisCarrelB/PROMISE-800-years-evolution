@@ -1,89 +1,55 @@
-from ete3 import Tree, TreeStyle, NodeStyle
-import pandas as pd 
-def visualize_event_from_files(newick_path, data_path):
-    # Charger l'arbre à partir du fichier Newick
-    with open(newick_path, 'r') as file:
-        newick_str = file.read().strip()
-    tree = Tree(newick_str, format=1)  # Utiliser le format NHX
+import pandas as pd
+from Bio import Phylo
+import matplotlib.pyplot as plt
 
-    # Charger les données de l'événement
-    node_data = {}
-    with open(data_path, 'r') as file:
-        for line in file:
-            parts = line.split()
-            if len(parts) == 2:
-                node_data[parts[0]] = bool(int(parts[1]))
+gene = "/Users/louiscarrel/Documents/Alignement_Project/largescale_kinase/DATA/ENSG00000107643/"
+path_nwk = gene + 'result_with_species_with_proba.nwk'
+path_tsv = gene + 'result_with_species_with_proba.tsv'
+species_ref = "Homo_sapiens"
 
-    # Définir le style de l'arbre
-    ts = TreeStyle()
-    ts.show_leaf_name = True
-    ts.show_branch_length = True
-    ts.show_branch_support = True
 
-    # Définir le style de nœud pour les événements
-    event_style = NodeStyle()
-    event_style["bgcolor"] = "lightblue"
-
-    no_event_style = NodeStyle()
-    no_event_style["bgcolor"] = "white"
-
-    # Appliquer le style aux nœuds selon les données
-    for node in tree.traverse():
-        if node.name in node_data:
-            if node_data[node.name]:
-                node.set_style(event_style)
-            else:
-                node.set_style(no_event_style)
-
-    # Afficher l'arbre
-    tree.show(tree_style=ts)
-
-def calculate_clade_statistics(newick_path, data_path):
-    # Charger l'arbre à partir du fichier Newick
-    with open(newick_path, 'r') as file:
-        newick_str = file.read().strip()
-    tree = Tree(newick_str, format=1)  # Supposer format NHX si nécessaire
-
-    # Charger les données de l'événement
-    node_data = {}
-    with open(data_path, 'r') as file:
-        for line in file:
-            parts = line.split()
-            if len(parts) == 2:
-                node_data[parts[0]] = bool(int(parts[1]))
-
-    print("Node Data:", node_data)  # Imprimer pour déboguer
-
-    # Préparer un dictionnaire pour les statistiques des clades
-    clade_stats = []
-
-    # Calculer les statistiques pour chaque clade
-    for node in tree.traverse("postorder"):  # postorder pour commencer par les feuilles
-        if not node.is_leaf():
-            node_event_data = [node_data.get(child.name, False) for child in node.get_children()]
-            print("Node:", node.name, "Data:", node_event_data)  # Imprimer pour déboguer
-            if any(node_event_data):  # Vérifier s'il y a des données à traiter
-                clade_stat = {
-                    'clade_root': node.name,
-                    'total': len(node_event_data),
-                    'event_present': sum(node_event_data),
-                    'event_absent': len(node_event_data) - sum(node_event_data),
-                    'percentage_event_present': 100 * sum(node_event_data) / len(node_event_data) if node_event_data else 0
-                }
-                clade_stats.append(clade_stat)
-
-    # Créer un DataFrame à partir des statistiques des clades
-    df = pd.DataFrame(clade_stats)
-    return df
+def get_distances(path_nwk, species_ref):
+    # parse the tree file and builds the tree
+    tree = Phylo.read(path_nwk, "newick")
+    
+    # get the names of the leaves
+    leaves = {term.name for term in tree.get_terminals()}
+    
+    # Initialiser le dictionnaire pour stocker les distances
+    d = {}
+    
+    # Calculer la distance pour chaque feuille par rapport à species_ref
+    for l in leaves:
+        # Empiriquement, il semble que nous devrions diviser par 2
+        d[l.lower()] = tree.distance(species_ref, l) / 2
+       
+    return d
 
 
 
 
 
-newick_path = '/Users/louiscarrel/Documents/Alignement_Project/largescale_kinase/ENSG00000107643/PASTEML_DONE/named.tree_list_species.nwk_xRSVhrp.nwk'
-data_path = '/Users/louiscarrel/Documents/Alignement_Project/largescale_kinase/ENSG00000107643/PASTEML_DONE/marginal_probabilities.character_Index.model_F81.tab'
+def plot_distances(path_nwk, path_tsv, species_ref):
+    # Obtenir les distances
+    distances = get_distances(path_nwk, species_ref)
+    
+    # Charger les données TSV
+    data = pd.read_csv(path_tsv, sep='\t')  # Assurez-vous que le séparateur est correct
+    data['Species'] = data['Species'].str.lower()  # Assurer la correspondance des cas
+    
+    # Ajouter les distances au DataFrame
+    data['Distance'] = data['Species'].map(distances)
+    
+    # Supprimer les lignes où la distance est NaN (si aucune correspondance n'est trouvée)
+    data.dropna(subset=['Distance'], inplace=True)
+    
+    # Tracer le graphique
+    plt.figure(figsize=(10, 6))
+    plt.scatter(data['Index'], data['Distance'], color='blue', alpha=0.5)
+    plt.title('Distance from ' + species_ref + ' vs. probability to canonic path')
+    plt.xlabel('probability')
+    plt.ylabel('Distance')
+    plt.grid(True)
+    plt.show()
 
-
-visualize_event_from_files(newick_path, data_path)
-
-
+plot_distances(path_nwk, path_tsv, species_ref)

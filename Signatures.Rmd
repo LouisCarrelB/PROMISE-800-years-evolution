@@ -50,7 +50,7 @@ ali_can2_filtered <- ali_can2[common_names, , drop = FALSE]
 ali_can3_filtered <- ali_can3[common_names, , drop = FALSE]
 ali_can <- cbind(ali_can1_filtered, ali_can2_filtered, ali_can3_filtered)
 ali_alt <- cbind(ali_alt1, ali_alt2, ali_alt3)
-ali_alt <- ali_alt[, -1] 
+
 # if MAPK8 cbind 17_1 and 17_2
 
 # Fonction pour regrouper les lettres spécifiées par ligne

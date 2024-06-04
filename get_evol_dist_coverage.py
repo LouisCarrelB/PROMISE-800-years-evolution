@@ -316,14 +316,14 @@ if __name__ == "__main__":
 	if args.species is None:
 		args.species = 'Homo_sapiens' 
 
-	tree_fname = args.gid+'/list_species.nwk.txt'
-	s_exon_fname = args.gid+'/thoraxe/s_exon_table_a3m.csv'
-	events_fname = args.gid+'/thoraxe/ases_table_a3m.csv'
+	tree_fname = "DATA/" + args.gid+'/list_species.nwk.txt'
+	s_exon_fname = "DATA/" +args.gid+'/thoraxe/s_exon_table_a3m.csv'
+	events_fname = "DATA/" +args.gid+'/thoraxe/ases_table_a3m.csv'
 	bins = [10,50,200,400,600,800,1000,1500]
 	# Utiliser la fonction
 	standardize_species_names(s_exon_fname)
 	# # get the evolutionary distances of each species wrt the reference species (human by default)
-	# dist_d = get_distances(tree_fname, args.species)
+	# ² = get_distances(tree_fname, args.species)
 	# # print(dist_d)
 	# max_val = max(dist_d.values())
 	# print('Max evolutionary distance:', max_val)
@@ -363,13 +363,14 @@ if __name__ == "__main__":
 ############# ADDING FROM LOUIS ASES
 	# Créer un dictionnaire pour enregistrer les clés associées à chaque espèce
 	## Ambigues :
-	filename = args.gid+"/inter/undecided_sequences_17_0.fasta"
+	filename = "DATA/" +args.gid+"/inter/undecided_sequences_17_0.fasta"
 	ambigue = read_msa_and_get_organisms(filename)
 	ambigue = [s.lower().replace(' ', '_') for s in ambigue]
 
-	print(ambigue)
+
+
 	species_keys = {}
-	output_filename = args.gid + '/filtered_species_for_pastml.tsv'
+	output_filename = "DATA/" +args.gid + '/filtered_species_for_pastml.tsv'
 	# Itérer sur chaque paire clé-ensemble du dictionnaire
 	for key, species_set in firstevent.items():
 		for species in species_set:
@@ -391,7 +392,7 @@ if __name__ == "__main__":
 
 	# Présumant que args.gid est une variable contenant le chemin du dossier
 	gid_path = args.gid  # Remplacez ceci par la valeur réelle de args.gid
-	output_file_path = f"{gid_path}/filtered_species_for_pastml.csv"
+	output_file_path = f"DATA/{gid_path}/filtered_species_for_pastml.csv"
 
 	
 	species = set()
@@ -434,4 +435,7 @@ if __name__ == "__main__":
 
 
 	
+
+
+
 

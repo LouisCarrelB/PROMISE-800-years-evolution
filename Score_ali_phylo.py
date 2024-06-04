@@ -3,6 +3,7 @@ Permet de construire un arbre (avec time tree) et de le mapper avec pasteML en f
 '''
 import pandas as pd 
 import json
+import subprocess
 
 def read_msa_fasta(file_path):
     """
@@ -50,7 +51,16 @@ def merge_msas(file1, file2, file3):
     merged_df = pd.concat([df1, df2, df3], ignore_index=True)
     return merged_df
 
-
+def format_species_names(input_file_path, output_file_path):
+    '''
+    Format name of species 
+    '''
+    df = pd.read_csv(input_file_path, sep='\t')
+    
+    df['Species'] = df['Species'].apply(lambda x: ' '.join(word.capitalize() for word in x.split('_')))
+    
+    new_df = df[['Species']]
+    new_df.to_csv(output_file_path, index=False)
 
 result_df = merge_msas('/Users/louiscarrel/Documents/Alignement_Project/largescale_kinase/DATA/ENSG00000107643/New_alignement/msa_s_exon_17_0.fasta', 
                        '/Users/louiscarrel/Documents/Alignement_Project/largescale_kinase/DATA/ENSG00000107643/New_alignement/msa_s_exon_17_1.fasta', 
@@ -73,8 +83,25 @@ def add_species_column(df, species_mapping):
     return df
 
 result_df = add_species_column(result_df, species_dict)
-result_df.to_csv('/Users/louiscarrel/Documents/Alignement_Project/largescale_kinase/DATA/ENSG00000107643/result_with_species.csv', index=False)
 result_df = result_df[result_df['Species'] != 'Unknown']
 result_df.reset_index(drop=True, inplace=True)
-result_df.to_csv('/Users/louiscarrel/Documents/Alignement_Project/largescale_kinase/DATA/ENSG00000107643/result_with_species_with_proba.csv', index=False)
+result_df = result_df[['pA', 'Species']].rename(columns={'pA': 'Index'})
+result_df.to_csv('/Users/louiscarrel/Documents/Alignement_Project/largescale_kinase/DATA/ENSG00000107643/result_with_species_with_proba.tsv', index=False, sep='\t')
+result_df['Species'] = result_df['Species'].str.replace(' ', '_', regex=False)
+
+# Inverser l'ordre des colonnes
+df = result_df[['Species', 'Index']]
+# format_species_names('/Users/louiscarrel/Documents/Alignement_Project/largescale_kinase/DATA/ENSG00000107643/result_with_species_with_proba.tsv',
+#                       '/Users/louiscarrel/Documents/Alignement_Project/largescale_kinase/DATA/ENSG00000107643/result_with_species_with_proba.tsv')
+
+
+df.to_csv('/Users/louiscarrel/Documents/Alignement_Project/largescale_kinase/DATA/ENSG00000107643/result_with_species_with_proba.tsv', index=False, sep='\t')
+df.to_csv("/Users/louiscarrel/Documents/Alignement_Project/largescale_kinase/DATA/ENSG00000107643/result_with_species_with_proba.csv")
+print(df)
 print(result_df) 
+
+
+
+pastml_command = "pastml --tree /Users/louiscarrel/Documents/Alignement_Project/largescale_kinase/DATA/ENSG00000107643/result_with_species_with_proba.nwk --data /Users/louiscarrel/Documents/Alignement_Project/largescale_kinase/DATA/ENSG00000107643/result_with_species_with_proba.csv --html_compressed /Users/louiscarrel/Documents/Alignement_Project/largescale_kinase/DATA/ENSG00000107643/map.html"
+subprocess.call(pastml_command, shell=True)
+
