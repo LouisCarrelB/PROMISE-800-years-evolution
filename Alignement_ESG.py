@@ -17,6 +17,7 @@ from tqdm import tqdm
 import requests
 import json
 import numpy as np
+from scipy.special import rel_entr
 
 
 def write_msa_to_temp_file(msa_object, temp_file_path, exclusive_positions):
@@ -47,136 +48,101 @@ def build_hmm(input_file, output_file):
 
 
 
-def calculate_presence_matrix(sequences_msa, special_positions, multiplier=3):
+def calculate_presence_matrix(alignment, position_weights):
     amino_acids = 'ACDEFGHIKLMNPQRSTVWY'  # Liste des 20 acides aminés standards
-    num_positions = len(sequences_msa[0].seq)  # Longueur de la première séquence
+    num_positions = len(alignment[0].seq)  # Longueur de la première séquence, suppose que toutes ont la même longueur
     presence_matrix = np.zeros((len(amino_acids), num_positions))
 
     # Calculer le ratio de présence pour chaque acide aminé à chaque position
     for pos in range(num_positions):
-        column = [seq.seq[pos] for seq in sequences_msa if seq.seq[pos] in amino_acids]
+        column = [record.seq[pos] for record in alignment if record.seq[pos] in amino_acids]
         total_aas = len(column)
 
         if total_aas > 0:  # Éviter la division par zéro
             aa_counts = {aa: column.count(aa) for aa in amino_acids}
             for i, aa in enumerate(amino_acids):
                 presence_matrix[i, pos] = aa_counts[aa] / total_aas
-                # Appliquer le multiplicateur si la position est spéciale
-                if pos in special_positions:
-                    presence_matrix[i, pos] *= multiplier
+                # Appliquer un poids spécifique si la position est jugée importante
+                if pos in position_weights:
+                    presence_matrix[i, pos] *= 100 ** position_weights[pos]
+                else:
+                    presence_matrix[i, pos] *= 1  # Si aucune information de poids, multiplier par 1 (ne change rien)
 
     return presence_matrix
 
 
 def calculate_sequence_score(sequence, presence_matrix, amino_acids='ACDEFGHIKLMNPQRSTVWY'):
-    if len(sequence) != presence_matrix.shape[1]:
-        raise ValueError("La longueur de la séquence doit correspondre à la longueur des séquences du MSA.")
-
     score = 0
     for pos, aa in enumerate(sequence):
         if aa in amino_acids:
             aa_index = amino_acids.index(aa)
             score += presence_matrix[aa_index, pos]
-        else:
-            print(f"Acide aminé non standard '{aa}' à la position {pos+1}. Ignoré dans le score.")
-
     return score
 
 
-def calculate_entropy(acid_set, total_count):
-    entropy = 0
-    for acid in acid_set:
-        p = acid_set[acid] / total_count
-        entropy -= p * np.log2(p)
-    return entropy
 
+def calculate_kl_divergence(p, q):
+    """Calcule la divergence KL de p vers q en utilisant rel_entr pour gérer les probabilités de zéro."""
+    p = np.asarray(p, dtype=np.float64)
+    q = np.asarray(q, dtype=np.float64)
+    # Ajout d'une petite constante pour éviter le log de zéro
+    epsilon = 1e-10
+    p += epsilon
+    q += epsilon
+    return np.sum(rel_entr(p, q))
 
-def find_mutually_exclusive_positions(msa1, msa2):
-    if len(msa1[0].seq) != len(msa2[0].seq):
-        raise ValueError("Les deux MSA doivent avoir la même longueur d'alignement")
+def calculate_aa_distribution(column):
+    amino_acids = 'ACDEFGHIKLMNPQRSTVWY'
+    counts = {aa: 0 for aa in amino_acids}
+    for aa in column:
+        if aa in amino_acids:
+            counts[aa] += 1
+    total = sum(counts.values())
+    distribution = [counts[aa] / total if total > 0 else 0 for aa in amino_acids]
+    return distribution
+
+def find_important_positions_with_weights(msa1, msa2):
+    important_positions = {}
+    all_kl1 = []
+    all_kl2 = []
     
-    mutually_exclusive_positions = []
-    alignment_length = len(msa1[0].seq)
+    # Assurez-vous que les séquences dans chaque MSA ont la même longueur
+    msa1 = pad_sequences(msa1)
+    msa2 = pad_sequences(msa2)
+    
+    for i in range(len(msa1[0].seq)):
+        col1 = [record.seq[i] for record in msa1]
+        col2 = [record.seq[i] for record in msa2]
+        
+        dist1 = calculate_aa_distribution(col1)
+        dist2 = calculate_aa_distribution(col2)
+        
+        kl1 = calculate_kl_divergence(dist1, dist2)
+        kl2 = calculate_kl_divergence(dist2, dist1)
+        
+        all_kl1.append(kl1)
+        all_kl2.append(kl2)
+        
+        # Utilisation de la moyenne normalisée des divergences de KL comme poids
+        mean_kl = (kl1 + kl2) / 2
+        if mean_kl > 0:
+            important_positions[i] = mean_kl
+    
+    # Normalisation des poids
+    total_weight = sum(important_positions.values())
+    if total_weight > 0:
+        important_positions = {pos: weight / total_weight for pos, weight in important_positions.items()}
 
-    for i in range(alignment_length):
-        count_set1 = {seq.seq[i]: 0 for seq in msa1}
-        count_set2 = {seq.seq[i]: 0 for seq in msa2}
-
-        for seq in msa1:
-            count_set1[seq.seq[i]] += 1
-        for seq in msa2:
-            count_set2[seq.seq[i]] += 1
-
-        set1 = set(count_set1.keys())
-        set2 = set(count_set2.keys())
-
-        total1 = sum(count_set1.values())
-        total2 = sum(count_set2.values())
-
-        entropy1 = calculate_entropy(count_set1, total1)
-        entropy2 = calculate_entropy(count_set2, total2)
-
-        # Vérifier si les ensembles sont disjoints et prendre en compte l'entropie
-        if set1.isdisjoint(set2) and (entropy1 > 0 or entropy2 > 0):
-            mutually_exclusive_positions.append((i, entropy1, entropy2))
-
-    return mutually_exclusive_positions
-
-
-
-
-def score_sequence_with_hmm(hmm_file, sequence, exon_id, constant_positions):
-    sequence_file = nouveau_repertoire + f"temp_sequence_{exon_id}.fasta"
-    filtered_sequence = ''.join(sequence[i] for i in constant_positions if i < len(sequence))
-    filtered_sequence = "IAJGVQ"
-    with open(sequence_file, 'w') as f:
-        f.write(">filtered_sequence\n" + filtered_sequence + "\n")
-
-    score_output_path = os.path.join(nouveau_repertoire, f"score_output_{exon_id}.txt")
-    # Execute hmmsearch
-    hmmsearch_command = f"/Users/louiscarrel/Downloads/hmmer-3.4/src/hmmsearch --tblout {score_output_path} --incE 1000 {hmm_file} {sequence_file}"
-    subprocess.call(hmmsearch_command, shell=True,stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    os.remove(sequence_file)
-    # Read and return the score from score_output.txt
-    try:
-            with open(score_output_path, 'r') as f:
-                for line in f:
-                    if not line.startswith("#") and len(line.split()) > 5:
-                        score = float(line.split()[5])
-                        return score
-            return 0.0 
-    except FileNotFoundError:
-        return 0.0
-
+    return important_positions
 
     
-
-def score_sequence_with_hmm_bis(hmm_file, sequence,exon_id):
-    sequence_file = nouveau_repertoire +  f"temp_sequence_{exon_id}.fasta"
-    # Remove dashes from the sequence
-    cleaned_sequence = sequence.replace("-", "")
-    
-    # Save the new sequence in a FASTA file
-    with open(sequence_file, 'w') as f:
-        f.write(">new_sequence\n" + cleaned_sequence + "\n")
-
-    score_output_path = os.path.join(nouveau_repertoire, f"score_output_{exon_id}.txt")
-    # Execute hmmsearch
-    hmmsearch_command = f"/Users/louiscarrel/Downloads/hmmer-3.4/src/hmmsearch --tblout {score_output_path} {hmm_file} {sequence_file}"
-    subprocess.call(hmmsearch_command, shell=True,stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    os.remove(sequence_file)
-    # Read and return the score from score_output.txt
-    try:
-        with open(nouveau_repertoire + f"score_output_{exon_id}.txt", 'r') as f:
-            for line in f:
-                if not line.startswith("#"):
-                    return float(line.split()[5])  # needed to transfrom string in float 
-    except FileNotFoundError:
-        print("Score output file not found.")
-        return None
-
-
-
+def pad_sequences(msa):
+    """Pads all sequences in the MSA to the same length with gaps."""
+    max_length = max(len(record.seq) for record in msa)
+    for record in msa:
+        if len(record.seq) < max_length:
+            record.seq += '-' * (max_length - len(record.seq))
+    return msa
 
 def traiter_fichier_a3m(chemin_fichier):
     '''
@@ -457,11 +423,34 @@ def detect_signature(sequence):
     return score_alpha, score_beta
 
 
+def update_record_description(record, pA, pB):
+    if record.description:
+        description_parts = record.description.split(" ")
+        # Recherche des indices pour pA et pB s'ils existent déjà
+        pA_index = next((i for i, part in enumerate(description_parts) if part.startswith('pA=')), -1)
+        pB_index = next((i for i, part in enumerate(description_parts) if part.startswith('pB=')), -1)
+        
+        # Mise à jour ou ajout de pA
+        if pA_index != -1:
+            description_parts[pA_index] = f"pA={pA:.4f}"
+        else:
+            description_parts.append(f"pA={pA:.4f}")
+        
+        # Mise à jour ou ajout de pB
+        if pB_index != -1:
+            description_parts[pB_index] = f"pB={pB:.4f}"
+        else:
+            description_parts.append(f"pB={pB:.4f}")
+    else:
+        # Crée une nouvelle description si aucune n'existe
+        description_parts = [f"pA={pA:.4f}", f"pB={pB:.4f}"]
+
+    # Reconstruction de la description
+    record.description = " ".join(description_parts)
 
 
 
-def adding_sequence_alt(sequences_a3m,sequences_msa,all_msa, positions,exon_start,exon_end, GAP, IDENTITY,exon_id,nouveau_repertoire,nbr_seq,SIGNIFICANT_DIFFERENCE,t,msa_alt_complet):
-    exon_id_alt = exon_id + "_alt"
+def adding_sequence_alt(sequences_a3m,sequences_msa,all_msa, positions,exon_start,exon_end, GAP, IDENTITY,exon_id,nouveau_repertoire,nbr_seq,SIGNIFICANT_DIFFERENCE,t,msa_alt_complet_alt):
     undecided = []
     
     first_sequence_msa = sequences_msa[0].seq  
@@ -470,32 +459,13 @@ def adding_sequence_alt(sequences_a3m,sequences_msa,all_msa, positions,exon_star
 
     # Boucler à travers la liste msa_all et concaténer les premières séquences de chaque exon
     for exon_key in all_msa:
-        sequences_msa_alt = all_msa[exon_key]
         first_sequence_msa_alt += all_msa[exon_key][0].seq
 
-    postion_to_look = find_mutually_exclusive_positions(sequences_msa,msa_alt_complet)
-
-
-
-    print(postion_to_look)
-    ### Build HMM for canonique and alternatif 
-    # with tempfile.NamedTemporaryFile(mode='w+', delete=False) as temp_msa_file:
-    #     write_msa_to_temp_file(msa_alt_complet, temp_msa_file.name,postion_to_look)
-    #     temp_msa_file_path_alt = temp_msa_file.name
-    # with tempfile.NamedTemporaryFile(mode='w+', delete=False) as temp_msa_file:
-    #     write_msa_to_temp_file(sequences_msa, temp_msa_file.name,postion_to_look)
-    #     temp_msa_file_path = temp_msa_file.name
-
-    # hmm_file_alt = nouveau_repertoire + f"temp_{exon_id_alt}.hmm"
-    # hmm_file = nouveau_repertoire + f"temp_{exon_id}.hmm"
-
-    # build_hmm(temp_msa_file_path, hmm_file)
-    # build_hmm(temp_msa_file_path_alt, hmm_file_alt)
-
-    presence_matrix_can = calculate_presence_matrix(sequences_msa,postion_to_look,5)
-    presence_matrix_alt = calculate_presence_matrix(msa_alt_complet,postion_to_look,5)
-
     for sequence_a3m in tqdm(sequences_a3m, desc="Alignement to exon alt and can"):
+        postion_to_look = find_important_positions_with_weights(sequences_msa,msa_alt_complet_alt)
+        presence_matrix_can = calculate_presence_matrix(sequences_msa,postion_to_look)
+        presence_matrix_alt = calculate_presence_matrix(msa_alt_complet_alt,postion_to_look)
+
         # Sélectionner la séquence entre exon_start et exon_end
         selected_sequence = take_out_dupli(sequence_a3m.seq)[exon_start - 1:exon_end]
         selected_sequence_alt = take_out_dupli(sequence_a3m.seq)[exon_start - 1: exon_start - 1+ 
@@ -518,29 +488,59 @@ def adding_sequence_alt(sequences_a3m,sequences_msa,all_msa, positions,exon_star
                     A_real_score = calculate_sequence_score(str(selected_sequence),presence_matrix_can)
                     B_real_score = calculate_sequence_score(str(selected_sequence_alt),
                                         presence_matrix_alt)
-                    print(A_real_score)
-                    print(B_real_score)
                     ## Do it with only differential position 
                     pA = math.exp(A_real_score/t)/(math.exp(A_real_score/t)+math.exp(B_real_score/t))
                     pB = math.exp(B_real_score/t)/(math.exp(A_real_score/t)+math.exp(B_real_score/t))
-                    #os.remove(nouveau_repertoire + f"score_output_{exon_id}.txt")
-                    #os.remove(nouveau_repertoire + f"score_output_{exon_id_alt}.txt")
+ 
                     if pA <= 0.47 or pA >= 0.53:
-                        print(A_real_score,B_real_score)
                         if pA > pB :
                             selected_record = SeqRecord(selected_sequence, id=sequence_a3m.id ,description=f"Evalue={min(A, B)} Alpha={Alpha} Beta={Beta} pA={pA} pB={pB} path=can" )
                             sequences_msa.append(selected_record)
                         if pB > pA : 
+                            msa_alt_complet_alt.append(SeqRecord(selected_sequence_alt, id=sequence_a3m.id ,description=f"Evalue={min(A, B)} Alpha={Alpha} Beta={Beta} pA={pA} pB={pB} path=can" ))
                             for exon_key in all_msa:
                                 begin, end = positions[exon_key]
                                 selected_record = SeqRecord(gap_inter(first_sequence_msa_alt, 
                                                                     take_out_dupli(sequence_a3m.seq)[begin - 1:end]), 
                                                                         id=sequence_a3m.id,
                                                                         description=f"Evalue={min(A, B)} Alpha={Alpha} Beta={Beta} pA={pA} pB={pB} path=alt ")
+                                
                                 all_msa[exon_key].append(selected_record)
+                                
                     else : 
                         undecided_record = SeqRecord(selected_sequence, id=sequence_a3m.id, description=f"Evalue_A={A} Evalue_B={B} Alpha={Alpha} Beta={Beta} pA={pA} pB={pB} path=ambi")
                         undecided.append(undecided_record)
+
+    ## recalculer pA et pB :
+    postion_to_look = find_important_positions_with_weights(sequences_msa,msa_alt_complet_alt)                    
+    presence_matrix_can = calculate_presence_matrix(sequences_msa,postion_to_look)
+    presence_matrix_alt = calculate_presence_matrix(msa_alt_complet_alt,postion_to_look)
+
+    for record in sequences_msa :
+        selected_sequence = record.seq
+        A_real_score = calculate_sequence_score(str(selected_sequence), presence_matrix_can)
+        B_real_score = calculate_sequence_score(str(selected_sequence), presence_matrix_alt)
+        pA = math.exp(A_real_score/t) / (math.exp(A_real_score/t) + math.exp(B_real_score/t))
+        pB = math.exp(B_real_score/t) / (math.exp(A_real_score/t) + math.exp(B_real_score/t))
+        update_record_description(record, pA, pB)
+    
+    for record in msa_alt_complet_alt :
+        selected_sequence = record.seq
+        A_real_score = calculate_sequence_score(str(selected_sequence), presence_matrix_can)
+        B_real_score = calculate_sequence_score(str(selected_sequence), presence_matrix_alt)
+        pA = math.exp(A_real_score/t) / (math.exp(A_real_score/t) + math.exp(B_real_score/t))
+        pB = math.exp(B_real_score/t) / (math.exp(A_real_score/t) + math.exp(B_real_score/t))
+        update_record_description(record, pA, pB)
+
+    for record in undecided :
+        selected_sequence = record.seq
+        A_real_score = calculate_sequence_score(str(selected_sequence), presence_matrix_can)
+        B_real_score = calculate_sequence_score(str(selected_sequence), presence_matrix_alt)
+        pA = math.exp(A_real_score/t) / (math.exp(A_real_score/t) + math.exp(B_real_score/t))
+        pB = math.exp(B_real_score/t) / (math.exp(A_real_score/t) + math.exp(B_real_score/t))
+        update_record_description(record, pA, pB)
+
+
 
 
     output_msa = nouveau_repertoire + f"msa_s_exon_{exon_id}.fasta"
@@ -548,12 +548,14 @@ def adding_sequence_alt(sequences_a3m,sequences_msa,all_msa, positions,exon_star
 
     output_undecided = inter_path + f'undecided_sequences_{exon_id}.fasta'
     SeqIO.write(undecided, output_undecided, "fasta")
+
+    output_alt = inter_path  + f'Alt_{exon_id}.fasta'
+    SeqIO.write(msa_alt_complet_alt, output_alt, "fasta")
+
     for exon_key in all_msa : 
         output_msa = nouveau_repertoire + f"msa_s_exon_{exon_key}.fasta"
         SeqIO.write(all_msa[exon_key], output_msa, "fasta")
 
-    # os.remove(nouveau_repertoire + hmm_file)
-    # os.remove(nouveau_repertoire + hmm_file_alt)
 
 
     
@@ -945,11 +947,14 @@ if __name__ == "__main__":
          all = sys.argv[3]
     else :
         all = "No"
+
+
+    #################################
     GAP = 70
     IDENTITY = 1e-4 
     SIGNIFICANT_DIFFERENCE = 1e-5
     t= 1
-
+    ##################################
     GENE = "DATA/" + gene_name + "/"
     msa_directory = GENE + "thoraxe/msa/"
     path_table_path = GENE + "thoraxe/path_table.csv"
@@ -965,7 +970,7 @@ if __name__ == "__main__":
  
     for a3m_fichier in glob.glob(GENE +"other_data/" + "*.a3m"):
         traiter_fichier_a3m(a3m_fichier)
-        
+    ########################################    
 
     exon_path, exon_similaire = process_transcript(gene_name, GAP, IDENTITY,SIGNIFICANT_DIFFERENCE, GENE, msa_directory, path_table_path, pir_file_path, 
                        dictFname, nouveau_repertoire, ASRU, transcrit_file, query_transcrit_id,s_exon_table_path,t)

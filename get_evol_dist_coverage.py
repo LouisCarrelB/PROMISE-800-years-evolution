@@ -195,7 +195,7 @@ def write_results_sex(sex_d, fname, bins=[10,50,200,400,600,800,1000,1500]):
 		for sex in sex_d:
 			for dist in bins:
 				if dist in sex_d[sex]:
-					f.write(sex+','+str(dist)+','+str(sex_d[sex][dist])+'\n')
+					f.write(sex+','+str(dist)+','+ástr(sex_d[sex][dist])+'\n')
 				else:
 					f.write(sex+','+str(dist)+',0\n')
 
@@ -430,7 +430,7 @@ if __name__ == "__main__":
 
 	df.to_csv(output_filename, sep='\t', index=False, columns=['Species', 'Index'])
 
-	species_path =  args.gid + '/Species_list_time_tree.csv'
+	species_path =  "DATA/" + args.gid + '/Species_list_time_tree.csv'
 	format_species_names(output_filename, species_path)
 
 
