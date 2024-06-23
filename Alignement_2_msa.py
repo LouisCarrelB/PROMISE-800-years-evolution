@@ -8,7 +8,41 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from scipy.special import rel_entr
 from Bio.Align import MultipleSeqAlignment
+from Bio.Align import MultipleSeqAlignment
+import os
+import subprocess
+from io import StringIO
 
+
+def align_msa_with_mafft(msa_records):
+    """Align MSA using MAFFT."""
+    # Convert BioPython records into a FASTA formatted string
+    fasta_format = "".join(f">{record.id}\n{str(record.seq)}\n" for record in msa_records)
+    
+    # Set up the MAFFT command
+    mafft_cmd = ["mafft", "--auto", "--quiet", "-"]
+    
+    # Execute MAFFT using subprocess with stdin and stdout
+    process = subprocess.Popen(mafft_cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    stdout, stderr = process.communicate(fasta_format)
+    
+    if process.returncode != 0:
+        raise Exception(f"MAFFT error: {stderr}")
+    
+    # Read the aligned sequences from MAFFT output
+    return AlignIO.read(StringIO(stdout), "fasta")
+
+def prepare_and_align_three_msas(msa1, msa2, msa3):
+    """Prepare and align three MSAs and return them separately."""
+    concatenated_msa = msa1 + msa2 + msa3  # Concatenate MSAs
+    aligned_msa = align_msa_with_mafft(concatenated_msa)  # Align concatenated MSAs
+    
+    # Assuming all MSAs are of the same length after alignment
+    msa1_aligned = MultipleSeqAlignment(aligned_msa[:len(msa1)])
+    msa2_aligned = MultipleSeqAlignment(aligned_msa[len(msa1):len(msa1)+len(msa2)])
+    msa3_aligned = MultipleSeqAlignment(aligned_msa[len(msa1)+len(msa2):])
+    
+    return msa1_aligned, msa2_aligned, msa3_aligned
 
 def calculate_presence_matrix(alignment, position_weights):
     amino_acids = 'ACDEFGHIKLMNPQRSTVWY'  # Liste des 20 acides aminés standards
@@ -26,7 +60,7 @@ def calculate_presence_matrix(alignment, position_weights):
                 presence_matrix[i, pos] = aa_counts[aa] / total_aas
                 # Appliquer un poids spécifique si la position est jugée importante
                 if pos in position_weights:
-                    presence_matrix[i, pos] *= 100 ** position_weights[pos]
+                    presence_matrix[i, pos] *=  position_weights[pos]
                 else:
                     presence_matrix[i, pos] *= 1  # Si aucune information de poids, multiplier par 1 (ne change rien)
 
@@ -97,42 +131,70 @@ def find_mutually_exclusive_positions(msa1, msa2):
 
     return mutually_exclusive_positions
 
-def align_sequences_to_msas(input_file, msa1_path, msa2_path, output_dir):
+
+
+def align_sequences_to_msas(input_file, msa1_path, msa2_path, output_dir, iterations=5):
     # Charger les MSA
-    msa1 = list(AlignIO.read(msa1_path, "fasta"))
-    msa2 = list(AlignIO.read(msa2_path, "fasta"))
+    msa1_ori = list(AlignIO.read(msa1_path, "fasta"))
+    msa2_ori = list(AlignIO.read(msa2_path, "fasta"))
     sequences = list(SeqIO.parse(input_file, "fasta"))
 
-    undecided = []
-    # Calculer les positions exclusives mutuelles à chaque itération
-    special_positions = find_important_positions_with_weights(msa1, msa2)
-    # Recalculer les matrices de présence après chaque ajout de séquence
-    presence_matrix_msa1 = calculate_presence_matrix(msa1, special_positions)
-    presence_matrix_msa2 = calculate_presence_matrix(msa2, special_positions)
-    for sequence in sequences:
+    msa1_ori, msa2_ori, sequences = prepare_and_align_three_msas(msa1_ori, msa2_ori, sequences)
+    msa1_ori = list(msa1_ori)
+    msa2_ori = list(msa2_ori)
+    sequences = list(sequences)
+    for i in range(iterations):
+        if i == 0:
+            # Calculer les positions importantes spécifiques à chaque MSA à chaque itération
+            special_positions = find_important_positions_with_weights(msa1_ori, msa2_ori)
+            # Calculer les matrices de présence pour chaque MSA
+            presence_matrix_msa1 = calculate_presence_matrix(msa1_ori, special_positions)
+            presence_matrix_msa2 = calculate_presence_matrix(msa2_ori, special_positions)
+            new_msa1 = []
+            new_msa2 = []
+            new_msa1 = msa1_ori.copy()
+            new_msa2 = msa2_ori.copy()
+        else :
+            # Calculer les positions importantes spécifiques à chaque MSA à chaque itération
+            special_positions = find_important_positions_with_weights(msa1, msa2)
+            # Calculer les matrices de présence pour chaque MSA
+            presence_matrix_msa1 = calculate_presence_matrix(msa1, special_positions)
+            presence_matrix_msa2 = calculate_presence_matrix(msa2, special_positions)
+            new_msa1 = []
+            new_msa2 = []
+            new_msa1 = msa1_ori.copy()
+            new_msa2 = msa2_ori.copy()
+       
 
 
-        score_msa1 = calculate_sequence_score(sequence.seq, presence_matrix_msa1)
-        score_msa2 = calculate_sequence_score(sequence.seq, presence_matrix_msa2)
+        undecided = []
+        for sequence in sequences:
+            print(sequence)
+            score_msa1 = calculate_sequence_score(sequence.seq, presence_matrix_msa1)
+            score_msa2 = calculate_sequence_score(sequence.seq, presence_matrix_msa2)
 
-        pA = math.exp(score_msa1) / (math.exp(score_msa1) + math.exp(score_msa2))
-        pB = math.exp(score_msa2) / (math.exp(score_msa1) + math.exp(score_msa2))
+            pA = math.exp(score_msa1) / (math.exp(score_msa1) + math.exp(score_msa2))
+            pB = math.exp(score_msa2) / (math.exp(score_msa1) + math.exp(score_msa2))
 
-        # Créer un nouveau SeqRecord avec les scores dans la description
-        new_seq_record = sequence
-        new_seq_record.description = f"pA: {pA:.3f}, pB: {pB:.3f}"
+            new_seq_record = sequence
+            new_seq_record.description = f"pA: {pA:.3f}, pB: {pB:.3f}"
 
-        if pA > 0.7:  # Ajouter la séquence à msa1 si pA est significativement plus grand
-            msa1.append(new_seq_record)
-        elif pB > 0.7:  # Ajouter la séquence à msa2 si pB est significativement plus grand
-            msa2.append(new_seq_record)
-        else:
-            undecided.append(new_seq_record)  # Séquences indécises
+            if pA > 0.7:
+                new_msa1.append(new_seq_record)
+            elif pB > 0.7:
+                new_msa2.append(new_seq_record)
+            else:
+                undecided.append(new_seq_record)
+
+        # Update MSAs
+        msa1 = new_msa1
+        msa2 = new_msa2
 
     # Sauvegarder les nouveaux MSA et les séquences indécises
-    AlignIO.write(MultipleSeqAlignment(msa1), f"{output_dir}/can_ali.fasta", "fasta")
-    AlignIO.write(MultipleSeqAlignment(msa2), f"{output_dir}/alt_ali.fasta", "fasta")
-    SeqIO.write(undecided, f"{output_dir}/undecided_sequences.fasta", "fasta")
+    AlignIO.write(MultipleSeqAlignment(msa1), f"{output_dir}/can_ali_5.fasta", "fasta")
+    AlignIO.write(MultipleSeqAlignment(msa2), f"{output_dir}/alt_ali_5.fasta", "fasta")
+    SeqIO.write(undecided, f"{output_dir}/undecided_sequences_5.fasta", "fasta")
+
 
 def create_gene_species_dict(exon_table_path):
     # Charger la table d'exons
@@ -201,7 +263,6 @@ def find_important_positions_with_weights(msa1, msa2):
     important_positions = {}
     all_kl1 = []
     all_kl2 = []
-    print(msa1[0].seq)
     for i in range(len(msa1[0].seq)):
         print(record.seq[i] for record in msa1)
         col1 = [record.seq[i] for record in msa1]
@@ -221,27 +282,35 @@ def find_important_positions_with_weights(msa1, msa2):
         if mean_kl > 0:
             important_positions[i] = mean_kl
     
-    # Normalisation des poids
-    total_weight = sum(important_positions.values())
-    if total_weight > 0:
-        important_positions = {pos: weight / total_weight for pos, weight in important_positions.items()}
+  
 
     return important_positions
 
 
 
 if __name__ == "__main__":
-    input_file = "ENSG00000107643/thoraxe_2/non_kept_sequences.fasta"
-    msa1_path = "ENSG00000107643/thoraxe_2/can.fasta"
-    msa2_path = "ENSG00000107643/thoraxe_2/alt.fasta"
-    output_dir = "ENSG00000107643/thoraxe_2/aligned_sequences"
+    input_file = "/Users/louiscarrel/Documents/Alignement_Project/largescale_kinase/DATA/ENSG00000010810/1st_transcrit_5_0/New_alignement/undecided_can.fasta"
+
+
+    # 100 no thoraxe 
+    # msa1_path = "DATA/ENSG00000107643-100species/thoraxe_2/aligned_sequences/can_ali.fasta"
+    # msa2_path = "DATA/ENSG00000107643-100species/thoraxe_2/aligned_sequences/alt_ali.fasta"
+
+    # 100 thoraxe 
+    can = "DATA/100species/ENSG00000010810/thoraxe/msa/can_ali_3.fasta"
+    alt = "DATA/100species/ENSG00000010810/thoraxe/msa/alt_ali_3.fasta"
+
+
+
+
+
+    output_dir = "DATA/100species/ENSG00000010810/thoraxe/msa/"
+
 
     # Charger les MSA depuis les fichiers
-    msa1 = list(AlignIO.read(msa1_path, "fasta"))
-    msa2 = list(AlignIO.read(msa2_path, "fasta"))
+    msa1 = list(AlignIO.read(can, "fasta"))
+    msa2 = list(AlignIO.read(alt, "fasta"))
 
-    important_positions = find_important_positions_with_weights(msa1, msa2)
-    matrix = calculate_presence_matrix(msa1, important_positions)
-    plot_presence_matrix(matrix)
+
     
-    align_sequences_to_msas(input_file, msa1_path, msa2_path, output_dir)
+    align_sequences_to_msas(input_file, can, alt, output_dir)

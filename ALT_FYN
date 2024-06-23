@@ -1,0 +1,437 @@
+Species,Index
+homo_sapiens,ALT
+gorilla_gorilla,ALT
+macaca_mulatta,ALT
+monodelphis_domestica,ALT
+rattus_norvegicus,ALT
+mus_musculus,ALT
+sus_scrofa,ALT
+ornithorhynchus_anatinus,ALT
+xenopus_tropicalis,ALT
+anser_brachyrhynchus,ALT
+anolis_carolinensis,ALT
+astatotilapia_calliptera,ALT
+ailuropoda_melanoleuca,ALT
+aotus_nancymaae,ALT
+amphiprion_percula,ALT
+anabas_testudineus,ALT
+bos_grunniens,ALT
+balaenoptera_musculus,ALT
+bos_mutus,ALT
+betta_splendens,ALT
+chelonoidis_abingdonii,ALT
+carassius_auratus,ALT
+carassius_auratus,ALT
+cercocebus_atys,ALT
+camelus_dromedarius,ALT
+cottoperca_gobio,ALT
+Unknown,ALT
+callithrix_jacchus,ALT
+coturnix_japonica,ALT
+chinchilla_lanigera,ALT
+cyclopterus_lumpus,ALT
+callorhinchus_milii,ALT
+cavia_porcellus,ALT
+crocodylus_porosus,ALT
+catagonus_wagneri,ALT
+Unknown,ALT
+dicentrarchus_labrax,ALT
+dasypus_novemcinctus,ALT
+equus_asinus,ALT
+eptatretus_burgeri,ALT
+equus_caballus,ALT
+erpetoichthys_calabaricus,ALT
+electrophorus_electricus,ALT
+esox_lucius,ALT
+ficedula_albicollis,ALT
+felis_catus,ALT
+fundulus_heteroclitus,ALT
+homo_sapiens,ALT
+gallus_gallus,ALT
+gopherus_evgoodei,ALT
+gorilla_gorilla,ALT
+gadus_morhua_gca010882105v1,ALT
+hippocampus_comes,ALT
+hucho_hucho,ALT
+hucho_hucho,ALT
+Unknown,ALT
+jaculus_jaculus,ALT
+lates_calcarifer,ALT
+larimichthys_crocea,ALT
+leptobrachium_leishanense,ALT
+laticauda_laticaudata,ALT
+mastacembelus_armatus,ALT
+mesocricetus_auratus,ALT
+macaca_fascicularis,ALT
+meleagris_gallopavo,ALT
+microcebus_murinus,ALT
+mandrillus_leucophaeus,ALT
+myripristis_murdjan,ALT
+monodon_monoceros,ALT
+moschus_moschiferus,ALT
+macaca_mulatta,ALT
+macaca_nemestrina,ALT
+microtus_ochrogaster,ALT
+monodelphis_domestica,ALT
+mus_spicilegus,ALT
+mus_musculus,ALT
+neolamprologus_brichardi,ALT
+nothobranchius_furzeri,ALT
+nomascus_leucogenys,ALT
+naja_naja,ALT
+notechis_scutatus,ALT
+neovison_vison,ALT
+ornithorhynchus_anatinus,ALT
+oryctolagus_cuniculus,ALT
+octodon_degus,ALT
+otolemur_garnettii,ALT
+oryzias_javanicus,ALT
+oncorhynchus_kisutch,ALT
+oncorhynchus_mykiss,ALT
+oncorhynchus_mykiss,ALT
+oreochromis_niloticus,ALT
+oryzias_latipes,ALT
+oncorhynchus_tshawytscha,ALT
+oncorhynchus_tshawytscha,ALT
+papio_anubis,ALT
+phascolarctos_cinereus,ALT
+propithecus_coquereli,ALT
+physeter_catodon,ALT
+poecilia_latipinna,ALT
+panthera_leo,ALT
+parus_major,ALT
+pundamilia_nyererei,ALT
+pan_paniscus,ALT
+panthera_pardus,ALT
+pongo_abelii,ALT
+poecilia_reticulata,ALT
+pelodiscus_sinensis,ALT
+prolemur_simus,ALT
+phocoena_sinus,ALT
+pan_troglodytes,ALT
+pseudonaja_textilis,ALT
+rhinopithecus_bieti,ALT
+rhinolophus_ferrumequinum,ALT
+rattus_norvegicus,ALT
+rhinopithecus_roxellana,ALT
+sparus_aurata,ALT
+serinus_canaria,ALT
+scleropages_formosus,ALT
+sinocyclocheilus_grahami,ALT
+sinocyclocheilus_grahami,ALT
+sarcophilus_harrisii,ALT
+strigops_habroptila,ALT
+sander_lucioperca,ALT
+scophthalmus_maximus,ALT
+sphenodon_punctatus,ALT
+salmo_salar,ALT
+salmo_salar,ALT
+sus_scrofa,ALT
+salmo_trutta,ALT
+sciurus_vulgaris,ALT
+taeniopygia_guttata,ALT
+takifugu_rubripes,ALT
+carlito_syrichta,ALT
+ursus_maritimus,ALT
+urocitellus_parryii,ALT
+vombatus_ursinus,ALT
+xenopus_tropicalis,ALT
+xiphophorus_maculatus,ALT
+Ornithorhynchus anatinus,ALT
+Unknown,ALT
+Leptobrachium leishanense,ALT
+Gopherus agassizii,ALT
+Unknown,ALT
+Laticauda laticaudata,ALT
+Latimeria chalumnae,ALT
+Lepisosteus oculatus,ALT
+Anolis carolinensis,ALT
+Bagarius yarrelli,ALT
+Erpetoichthys calabaricus,ALT
+Xiphophorus maculatus,ALT
+Unknown,ALT
+Neogobius melanostomus,ALT
+Scophthalmus maximus,ALT
+Unknown,ALT
+Takifugu bimaculatus,ALT
+Ovis aries,ALT
+Geotrypetes seraphini,ALT
+Denticeps clupeoides,ALT
+Unknown,ALT
+Phascolarctos cinereus,ALT
+Unknown,ALT
+Unknown,ALT
+Unknown,ALT
+Unknown,ALT
+Clupea harengus,ALT
+Cyprinodon variegatus,ALT
+Nothobranchius pienaari,ALT
+Anabas testudineus,ALT
+Heterocephalus glaber,ALT
+Fundulus heteroclitus,ALT
+Unknown,ALT
+Echeneis naucrates,ALT
+Unknown,ALT
+Unknown,ALT
+Electrophorus electricus,ALT
+Unknown,ALT
+Unknown,ALT
+Unknown,ALT
+Anguilla anguilla,ALT
+Unknown,ALT
+Betta splendens,ALT
+Unknown,ALT
+Cyclopterus lumpus,ALT
+Amphiprion percula,ALT
+Betta splendens,ALT
+Mastacembelus armatus,ALT
+Unknown,ALT
+Unknown,ALT
+Erinaceus europaeus,ALT
+Periophthalmus magnuspinnatus,ALT
+Sphaeramia orbicularis,ALT
+Unknown,ALT
+Latimeria chalumnae,ALT
+Unknown,ALT
+Unknown,ALT
+Unknown,ALT
+Xenopus tropicalis,ALT
+Hymenochirus boettgeri,ALT
+Unknown,ALT
+Unknown,ALT
+Pygocentrus nattereri,ALT
+Oryzias melastigma,ALT
+Unknown,ALT
+Unknown,ALT
+Unknown,ALT
+Unknown,ALT
+Astyanax mexicanus,ALT
+Dicentrarchus labrax,ALT
+Cyprinus carpio,ALT
+Unknown,ALT
+Hucho hucho,ALT
+Unknown,ALT
+Pan troglodytes,ALT
+Unknown,ALT
+Sinocyclocheilus rhinocerous,ALT
+Scleropages formosus,ALT
+Sphaeramia orbicularis,ALT
+Echeneis naucrates,ALT
+Halcyon senegalensis,ALT
+Hucho hucho,ALT
+Mola mola,ALT
+Gouania willdenowi,ALT
+Sagittarius serpentarius,ALT
+Oncorhynchus mykiss,ALT
+Nomascus leucogenys,ALT
+Sinocyclocheilus grahami,ALT
+Capra hircus,ALT
+Sinocyclocheilus rhinocerous,ALT
+Unknown,ALT
+Unknown,ALT
+Rattus norvegicus,ALT
+Takifugu rubripes,ALT
+Unknown,ALT
+Pteropus vampyrus,ALT
+Hucho hucho,ALT
+Polypterus senegalus,ALT
+Unknown,ALT
+Poecilia reticulata,ALT
+Unknown,ALT
+Callorhinchus milii,ALT
+Unknown,ALT
+Oryzias sinensis,ALT
+Aotus nancymaae,ALT
+Monodelphis domestica,ALT
+Camelus dromedarius,ALT
+Antrostomus carolinensis,ALT
+Leiothrix lutea,ALT
+Xenopus laevis,ALT
+Heterocephalus glaber,ALT
+Tinamus guttatus,ALT
+Phasianus colchicus,ALT
+Grus americana,ALT
+Unknown,ALT
+Unknown,ALT
+Unknown,ALT
+Neotoma lepida,ALT
+Acipenser ruthenus,ALT
+Monodon monoceros,ALT
+Unknown,ALT
+Ophiophagus hannah,ALT
+Menidia menidia,ALT
+Dissostichus mawsoni,ALT
+Chrysochloris asiatica,ALT
+Labrus bergylta,ALT
+Dissostichus mawsoni,ALT
+Callipepla squamata,ALT
+Acipenser ruthenus,ALT
+Albula glossodonta,ALT
+Alligator mississippiensis,ALT
+Heterocephalus glaber,ALT
+Myotis brandtii,ALT
+Amazona aestiva,ALT
+Unknown,ALT
+Heterocephalus glaber,ALT
+Heterocephalus glaber,ALT
+Gorilla gorilla gorilla,ALT
+Pipistrellus kuhlii,ALT
+Unknown,ALT
+Lamprotornis superbus,ALT
+Eleutherodactylus coqui,ALT
+Pachycephala philippinensis,ALT
+Amazona aestiva,ALT
+Unknown,ALT
+Geotrypetes seraphini,ALT
+Ornithorhynchus anatinus,ALT
+Unknown,ALT
+Dipodomys ordii,ALT
+Leptobrachium leishanense,ALT
+Gopherus agassizii,ALT
+Unknown,ALT
+Laticauda laticaudata,ALT
+Latimeria chalumnae,ALT
+Lepisosteus oculatus,ALT
+Anolis carolinensis,ALT
+Bagarius yarrelli,ALT
+Erpetoichthys calabaricus,ALT
+Xiphophorus maculatus,ALT
+Unknown,ALT
+Neogobius melanostomus,ALT
+Scophthalmus maximus,ALT
+Unknown,ALT
+Takifugu bimaculatus,ALT
+Ovis aries,ALT
+Geotrypetes seraphini,ALT
+Denticeps clupeoides,ALT
+Unknown,ALT
+Phascolarctos cinereus,ALT
+Unknown,ALT
+Unknown,ALT
+Unknown,ALT
+Unknown,ALT
+Clupea harengus,ALT
+Cyprinodon variegatus,ALT
+Nothobranchius pienaari,ALT
+Anabas testudineus,ALT
+Heterocephalus glaber,ALT
+Fundulus heteroclitus,ALT
+Unknown,ALT
+Echeneis naucrates,ALT
+Unknown,ALT
+Unknown,ALT
+Electrophorus electricus,ALT
+Unknown,ALT
+Unknown,ALT
+Unknown,ALT
+Anguilla anguilla,ALT
+Unknown,ALT
+Betta splendens,ALT
+Unknown,ALT
+Cyclopterus lumpus,ALT
+Amphiprion percula,ALT
+Betta splendens,ALT
+Mastacembelus armatus,ALT
+Unknown,ALT
+Unknown,ALT
+Unknown,ALT
+Erinaceus europaeus,ALT
+Periophthalmus magnuspinnatus,ALT
+Sphaeramia orbicularis,ALT
+Unknown,ALT
+Latimeria chalumnae,ALT
+Unknown,ALT
+Unknown,ALT
+Unknown,ALT
+Xenopus tropicalis,ALT
+Petromyzon marinus,ALT
+Hymenochirus boettgeri,ALT
+Unknown,ALT
+Unknown,ALT
+Pygocentrus nattereri,ALT
+Oryzias melastigma,ALT
+Unknown,ALT
+Unknown,ALT
+Unknown,ALT
+Unknown,ALT
+Callorhinchus milii,ALT
+Astyanax mexicanus,ALT
+Dicentrarchus labrax,ALT
+Cyprinus carpio,ALT
+Unknown,ALT
+Hucho hucho,ALT
+Unknown,ALT
+Pan troglodytes,ALT
+Unknown,ALT
+Sinocyclocheilus rhinocerous,ALT
+Scleropages formosus,ALT
+Sphaeramia orbicularis,ALT
+Echeneis naucrates,ALT
+Halcyon senegalensis,ALT
+Hucho hucho,ALT
+Mola mola,ALT
+Gouania willdenowi,ALT
+Sagittarius serpentarius,ALT
+Oncorhynchus mykiss,ALT
+Nomascus leucogenys,ALT
+Sinocyclocheilus grahami,ALT
+Capra hircus,ALT
+Sinocyclocheilus rhinocerous,ALT
+Unknown,ALT
+Unknown,ALT
+Rattus norvegicus,ALT
+Takifugu rubripes,ALT
+Unknown,ALT
+Pteropus vampyrus,ALT
+Oncorhynchus tshawytscha,ALT
+Hucho hucho,ALT
+Polypterus senegalus,ALT
+Unknown,ALT
+Poecilia reticulata,ALT
+Unknown,ALT
+Callorhinchus milii,ALT
+Unknown,ALT
+Coregonus sp. 'balchen',ALT
+Oryzias sinensis,ALT
+Aotus nancymaae,ALT
+Monodelphis domestica,ALT
+Camelus dromedarius,ALT
+Antrostomus carolinensis,ALT
+Leiothrix lutea,ALT
+Xenopus laevis,ALT
+Heterocephalus glaber,ALT
+Tinamus guttatus,ALT
+Phasianus colchicus,ALT
+Grus americana,ALT
+Horornis vulcanius,ALT
+Unknown,ALT
+Unknown,ALT
+Unknown,ALT
+Callipepla squamata,ALT
+Unknown,ALT
+Neotoma lepida,ALT
+Acipenser ruthenus,ALT
+Monodon monoceros,ALT
+Unknown,ALT
+Ophiophagus hannah,ALT
+Menidia menidia,ALT
+Dissostichus mawsoni,ALT
+Chrysochloris asiatica,ALT
+Labrus bergylta,ALT
+Dissostichus mawsoni,ALT
+Cervus elaphus hippelaphus,ALT
+Callipepla squamata,ALT
+Acipenser ruthenus,ALT
+Albula glossodonta,ALT
+Xenopus tropicalis,ALT
+Amazona aestiva,ALT
+Alligator mississippiensis,ALT
+Dipodomys ordii,ALT
+Heterocephalus glaber,ALT
+Myotis brandtii,ALT
+Amazona aestiva,ALT
+Unknown,ALT
+Heterocephalus glaber,ALT
+Heterocephalus glaber,ALT
+Gorilla gorilla gorilla,ALT
+Torpedo marmorata,ALT

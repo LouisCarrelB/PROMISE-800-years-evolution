@@ -5,6 +5,10 @@ import sys
 import logomaker as lm
 import pandas as pd
 import Alignement_2_msa as ali
+from Bio.Align import MultipleSeqAlignment
+import os
+import subprocess
+from io import StringIO
 
 def calculate_column_entropy(column):
     """Calculates Shannon entropy for a column of the alignment."""
@@ -13,28 +17,63 @@ def calculate_column_entropy(column):
     entropy = -np.sum(probabilities * np.log2(probabilities, where=(probabilities!=0)))
     return entropy
 
-def calculate_msa_entropy(msa):
-    """Calculates Shannon entropy for each column in a MSA."""
-    num_columns = len(msa[0])
-    entropies = np.zeros(num_columns)
-    for i in range(num_columns):
-        column = [record.seq[i] for record in msa]
-        entropies[i] = calculate_column_entropy(column)
-    return entropies
 
-def create_msa_logo(msa_path):
-    """
-    Lit un fichier MSA, extrait les séquences, les nettoie et génère un DataFrame pour un logo plot.
-    """
-    with open(msa_path, 'r') as f:
-        raw_seqs = f.readlines()
 
-    seqs = [seq.strip() for seq in raw_seqs if ('#' not in seq) and ('>') not in seq]
+def align_msa_with_mafft(msa_records):
+    """Align MSA using MAFFT."""
+    # Convert BioPython records into a FASTA formatted string
+    fasta_format = "".join(f">{record.id}\n{str(record.seq)}\n" for record in msa_records)
+    
+    # Set up the MAFFT command
+    mafft_cmd = ["mafft", "--auto", "--quiet", "-"]
+    
+    # Execute MAFFT using subprocess with stdin and stdout
+    process = subprocess.Popen(mafft_cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    stdout, stderr = process.communicate(fasta_format)
+    
+    if process.returncode != 0:
+        raise Exception(f"MAFFT error: {stderr}")
+    
+    # Read the aligned sequences from MAFFT output
+    return AlignIO.read(StringIO(stdout), "fasta")
+
+def prepare_and_align(msa1, msa2):
+    """Prepare and align two MSAs and return them separately."""
+    concatenated_msa = msa1 + msa2  # Concatenate MSAs
+    aligned_msa = align_msa_with_mafft(concatenated_msa)  # Align concatenated MSAs
+    
+    # Assuming both MSAs are of the same length after alignment
+    msa1_aligned = MultipleSeqAlignment(aligned_msa[:len(msa1)])
+    msa2_aligned = MultipleSeqAlignment(aligned_msa[len(msa1):])
+
+
+
+    return msa1_aligned, msa2_aligned
+
+def create_msa_logo(alignment):
+    """
+    Prend un objet MultipleSeqAlignment, extrait les séquences avec les gaps,
+    et génère un DataFrame pour un logo plot.
+    """
+    import logomaker as lm
+
+    # Garde les gaps dans les séquences
+    seqs = [str(record.seq) for record in alignment]
+    
     if len(seqs) == 0:
-        print("Aucune séquence valide trouvée dans le fichier.")
+        print("Aucune séquence valide trouvée.")
         return None
+    
     print(f'There are {len(seqs)} sequences, all of length {len(seqs[0])}')
-    msa_df = lm.alignment_to_matrix(sequences=seqs, to_type='counts', characters_to_ignore='.-X')
+    
+    # Vérifie si toutes les séquences ont la même longueur
+    if len(set(len(seq) for seq in seqs)) != 1:
+        print("Erreur : Les longueurs de séquences ne sont pas uniformes.")
+        return None
+
+    # Convertit les séquences en DataFrame pour le logo
+    msa_df = lm.alignment_to_matrix(sequences=seqs, to_type='counts', characters_to_ignore='X')
+    
     return msa_df
 
 def plot_msa_analysis(msa_path):
@@ -61,6 +100,28 @@ def plot_msa_analysis(msa_path):
     plt.tight_layout()
     plt.show()
 
+
+def plot_aa_distributions(msa_path, position):
+    msa = list(AlignIO.read(msa_path, "fasta"))
+    amino_acids = 'ACDEFGHIKLMNPQRSTVWY'
+    aa_counts = {aa: 0 for aa in amino_acids}
+    for record in msa:
+        aa = record.seq[position]
+        if aa in amino_acids:
+            aa_counts[aa] += 1
+
+    # Normalize the counts to get the probability distribution
+    total = sum(aa_counts.values())
+    aa_probs = {aa: count / total for aa, count in aa_counts.items()}
+
+    # Plotting
+    plt.bar(aa_probs.keys(), aa_probs.values())
+    plt.title(f'Amino Acid Distribution at Position {position }')
+    plt.xlabel('Amino Acid')
+    plt.ylabel('Frequency')
+    plt.show()
+
+
 def plot_kl_distribution(msa1_path, msa2_path):
     """Charge les MSA, calcule la KL divergence pour chaque position, et affiche un histogramme."""
     msa1 = list(AlignIO.read(msa1_path, "fasta"))
@@ -79,6 +140,7 @@ def plot_kl_distribution(msa1_path, msa2_path):
         
         dist1 = ali.calculate_aa_distribution(col1)
         dist2 = ali.calculate_aa_distribution(col2)
+    
         
         kl1 = ali.calculate_kl_divergence(dist1, dist2)
         kl2 = ali.calculate_kl_divergence(dist2, dist1)
@@ -98,6 +160,9 @@ def plot_combined_msa_analysis(msa1_path, msa2_path):
     # Load MSAs
     msa1 = list(AlignIO.read(msa1_path, "fasta"))
     msa2 = list(AlignIO.read(msa2_path, "fasta"))
+    msa1,msa2 = prepare_and_align(msa1, msa2)
+
+
 
     # KL divergence calculations
     kl_divergences = []
@@ -109,12 +174,14 @@ def plot_combined_msa_analysis(msa1_path, msa2_path):
         dist1 = ali.calculate_aa_distribution(col1)
         dist2 = ali.calculate_aa_distribution(col2)
         
-        kl_divergence = ali.calculate_kl_divergence(dist1, dist2)
-        kl_divergences.append(kl_divergence)
+        kl1 = ali.calculate_kl_divergence(dist1, dist2)
+        kl2 = ali.calculate_kl_divergence(dist2, dist1)
+        kl_divergences.append((kl1 + kl2) / 2)
     
     # Create dataframes for logos
-    msa_df1 = create_msa_logo(msa1_path)
-    msa_df2 = create_msa_logo(msa2_path)
+    msa_df2 = create_msa_logo(msa2)
+    msa_df1 = create_msa_logo(msa1)
+    
 
     # Create the figure with subplots
     fig = plt.figure(figsize=(18, 8))  # Width, Height
@@ -134,6 +201,8 @@ def plot_combined_msa_analysis(msa1_path, msa2_path):
     ax_kl.set_ylabel('KL Divergence (bits)')
     ax_kl.set_title('KL Divergence Histogram between MSAs')
     plt.show()
+
+
 if __name__ == "__main__":
     if len(sys.argv) != 3:
         print("Usage: python script_name.py path_to_msa1_file.fasta, path_to_msa2_file.fasta")

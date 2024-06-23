@@ -1,0 +1,939 @@
+Species,Index
+bos_taurus,ALT
+homo_sapiens,ALT
+gorilla_gorilla,ALT
+macaca_mulatta,ALT
+monodelphis_domestica,ALT
+mus_musculus,ALT
+ornithorhynchus_anatinus,ALT
+rattus_norvegicus,ALT
+sus_scrofa,ALT
+xenopus_tropicalis,ALT
+anser_brachyrhynchus,ALT
+astatotilapia_calliptera,ALT
+ailuropoda_melanoleuca,ALT
+astyanax_mexicanus,ALT
+astyanax_mexicanus,ALT
+aotus_nancymaae,ALT
+amphiprion_percula,ALT
+acanthochromis_polyacanthus,ALT
+acanthochromis_polyacanthus,ALT
+anabas_testudineus,ALT
+anabas_testudineus,ALT
+bos_grunniens,ALT
+balaenoptera_musculus,ALT
+bos_mutus,ALT
+betta_splendens,ALT
+betta_splendens,ALT
+chelonoidis_abingdonii,ALT
+carassius_auratus,ALT
+carassius_auratus,ALT
+carassius_auratus,ALT
+carassius_auratus,ALT
+cercocebus_atys,ALT
+camelus_dromedarius,ALT
+cottoperca_gobio,ALT
+cottoperca_gobio,ALT
+Unknown,ALT
+Unknown,ALT
+capra_hircus,ALT
+callithrix_jacchus,ALT
+chinchilla_lanigera,ALT
+cyclopterus_lumpus,ALT
+callorhinchus_milii,ALT
+cavia_porcellus,ALT
+cynoglossus_semilaevis,ALT
+cyprinodon_variegatus,ALT
+cyprinodon_variegatus,ALT
+catagonus_wagneri,ALT
+danio_rerio,ALT
+Unknown,ALT
+dicentrarchus_labrax,ALT
+dicentrarchus_labrax,ALT
+dipodomys_ordii,ALT
+equus_asinus,ALT
+eptatretus_burgeri,ALT
+equus_caballus,ALT
+erpetoichthys_calabaricus,ALT
+electrophorus_electricus,ALT
+electrophorus_electricus,ALT
+esox_lucius,ALT
+esox_lucius,ALT
+ficedula_albicollis,ALT
+fundulus_heteroclitus,ALT
+gasterosteus_aculeatus,ALT
+gasterosteus_aculeatus,ALT
+gallus_gallus,ALT
+geospiza_fortis,ALT
+gadus_morhua_gca010882105v1,ALT
+gadus_morhua_gca010882105v1,ALT
+haplochromis_burtoni,ALT
+haplochromis_burtoni,ALT
+hippocampus_comes,ALT
+hucho_hucho,ALT
+hucho_hucho,ALT
+hucho_hucho,ALT
+hucho_hucho,ALT
+jaculus_jaculus,ALT
+kryptolebias_marmoratus,ALT
+latimeria_chalumnae,ALT
+loxodonta_africana,ALT
+lates_calcarifer,ALT
+lates_calcarifer,ALT
+larimichthys_crocea,ALT
+larimichthys_crocea,ALT
+leptobrachium_leishanense,ALT
+mastacembelus_armatus,ALT
+mastacembelus_armatus,ALT
+mesocricetus_auratus,ALT
+macaca_fascicularis,ALT
+meleagris_gallopavo,ALT
+microcebus_murinus,ALT
+mandrillus_leucophaeus,ALT
+myotis_lucifugus,ALT
+myripristis_murdjan,ALT
+myripristis_murdjan,ALT
+monodon_monoceros,ALT
+moschus_moschiferus,ALT
+macaca_nemestrina,ALT
+microtus_ochrogaster,ALT
+mus_spicilegus,ALT
+maylandia_zebra,ALT
+neolamprologus_brichardi,ALT
+nothobranchius_furzeri,ALT
+nothobranchius_furzeri,ALT
+nannospalax_galili,ALT
+nomascus_leucogenys,ALT
+notechis_scutatus,ALT
+neovison_vison,ALT
+oryctolagus_cuniculus,ALT
+octodon_degus,ALT
+otolemur_garnettii,ALT
+oryzias_javanicus,ALT
+oryzias_javanicus,ALT
+oncorhynchus_kisutch,ALT
+oncorhynchus_kisutch,ALT
+oncorhynchus_kisutch,ALT
+oncorhynchus_kisutch,ALT
+oryzias_melastigma,ALT
+oryzias_melastigma,ALT
+oncorhynchus_mykiss,ALT
+oncorhynchus_mykiss,ALT
+oncorhynchus_mykiss,ALT
+oncorhynchus_mykiss,ALT
+oreochromis_niloticus,ALT
+oreochromis_niloticus,ALT
+oryzias_latipes,ALT
+oryzias_latipes,ALT
+oryzias_sinensis,ALT
+oncorhynchus_tshawytscha,ALT
+oncorhynchus_tshawytscha,ALT
+oncorhynchus_tshawytscha,ALT
+oncorhynchus_tshawytscha,ALT
+papio_anubis,ALT
+phascolarctos_cinereus,ALT
+propithecus_coquereli,ALT
+physeter_catodon,ALT
+poecilia_formosa,ALT
+paramormyrops_kingsleyae,ALT
+paramormyrops_kingsleyae,ALT
+poecilia_latipinna,ALT
+panthera_leo,ALT
+petromyzon_marinus,ALT
+parus_major,ALT
+podarcis_muralis,ALT
+pygocentrus_nattereri,ALT
+pygocentrus_nattereri,ALT
+pundamilia_nyererei,ALT
+pan_paniscus,ALT
+panthera_pardus,ALT
+pongo_abelii,ALT
+poecilia_reticulata,ALT
+prolemur_simus,ALT
+phocoena_sinus,ALT
+pan_troglodytes,ALT
+rhinopithecus_bieti,ALT
+rhinolophus_ferrumequinum,ALT
+rhinopithecus_roxellana,ALT
+sparus_aurata,ALT
+sparus_aurata,ALT
+seriola_dumerili,ALT
+scleropages_formosus,ALT
+scleropages_formosus,ALT
+sinocyclocheilus_grahami,ALT
+sinocyclocheilus_grahami,ALT
+sinocyclocheilus_grahami,ALT
+sarcophilus_harrisii,ALT
+strigops_habroptila,ALT
+sander_lucioperca,ALT
+sander_lucioperca,ALT
+scophthalmus_maximus,ALT
+scophthalmus_maximus,ALT
+salmo_salar,ALT
+salmo_salar,ALT
+salmo_salar,ALT
+salmo_salar,ALT
+ictidomys_tridecemlineatus,ALT
+salmo_trutta,ALT
+salmo_trutta,ALT
+salmo_trutta,ALT
+salmo_trutta,ALT
+sciurus_vulgaris,ALT
+tupaia_belangeri,ALT
+taeniopygia_guttata,ALT
+tetraodon_nigroviridis,ALT
+tetraodon_nigroviridis,ALT
+takifugu_rubripes,ALT
+takifugu_rubripes,ALT
+carlito_syrichta,ALT
+ursus_americanus,ALT
+vicugna_pacos,ALT
+xiphophorus_maculatus,ALT
+xiphophorus_maculatus,ALT
+Rattus norvegicus,ALT
+Taeniopygia guttata,ALT
+Unknown,ALT
+Unknown,ALT
+Petromyzon marinus,ALT
+Unknown,ALT
+Unknown,ALT
+Iconisemion striatum,ALT
+Unknown,ALT
+Cyprinus carpio,ALT
+Unknown,ALT
+Clupea harengus,ALT
+Unknown,ALT
+Unknown,ALT
+Cyprinus carpio carpio,ALT
+Unknown,ALT
+Unknown,ALT
+Unknown,ALT
+Oncorhynchus mykiss,ALT
+Sinocyclocheilus rhinocerous,ALT
+Unknown,ALT
+Oncorhynchus mykiss,ALT
+Clupea harengus,ALT
+Unknown,ALT
+Nothobranchius korthausae,ALT
+Oreochromis aureus,ALT
+Bos taurus,ALT
+Oreochromis niloticus,ALT
+Unknown,ALT
+Castor canadensis,ALT
+Scleropages formosus,ALT
+Unknown,ALT
+Oreochromis aureus,ALT
+Unknown,ALT
+Neogobius melanostomus,ALT
+Ursus americanus,ALT
+Unknown,ALT
+Cyprinus carpio,ALT
+Oncorhynchus tshawytscha,ALT
+Cyclopterus lumpus,ALT
+Cyprinus carpio,ALT
+Unknown,ALT
+Unknown,ALT
+Neogobius melanostomus,ALT
+Unknown,ALT
+Cyprinus carpio,ALT
+Hipposideros armiger,ALT
+Unknown,ALT
+Fundulus heteroclitus,ALT
+Myotis myotis,ALT
+Cavia porcellus,ALT
+Oncorhynchus mykiss,ALT
+Ornithorhynchus anatinus,ALT
+Takifugu rubripes,ALT
+Scophthalmus maximus,ALT
+Esox lucius,ALT
+Callorhinchus milii,ALT
+Unknown,ALT
+Unknown,ALT
+Takifugu rubripes,ALT
+Amphimedon queenslandica,ALT
+Sinocyclocheilus rhinocerous,ALT
+Cyprinus carpio,ALT
+Opisthorchis viverrini,ALT
+Sinocyclocheilus anshuiensis,ALT
+Scleropages formosus,ALT
+Bos mutus grunniens,ALT
+Unknown,ALT
+Unknown,ALT
+Unknown,ALT
+Unknown,ALT
+Unknown,ALT
+Latimeria chalumnae,ALT
+Alligator mississippiensis,ALT
+Timspurckia oligopyrenoides,ALT
+Unknown,ALT
+Unknown,ALT
+Unknown,ALT
+Pavo cristatus,ALT
+Sarcophilus harrisii,ALT
+Callithrix jacchus,ALT
+Unknown,ALT
+Chanos chanos,ALT
+Capra hircus,ALT
+Xenopus laevis,ALT
+Cyprinodon variegatus,ALT
+Handroanthus impetiginosus,ALT
+Callorhinchus milii,ALT
+Unknown,ALT
+Unknown,ALT
+Unknown,ALT
+Notechis scutatus,ALT
+Trichinella papuae,ALT
+Unknown,ALT
+Clupea harengus,ALT
+Cyprinus carpio,ALT
+Unknown,ALT
+Albula goreensis,ALT
+Rattus norvegicus,ALT
+Ornithorhynchus anatinus,ALT
+Unknown,ALT
+Unknown,ALT
+Podarcis muralis,ALT
+Unknown,ALT
+Unknown,ALT
+Cuscuta campestris,ALT
+Oryzias javanicus,ALT
+Unknown,ALT
+Unknown,ALT
+Paragonimus heterotremus,ALT
+Esox lucius,ALT
+Wollemia nobilis,ALT
+Punica granatum,ALT
+Sus scrofa,ALT
+Unknown,ALT
+Unknown,ALT
+Gadus morhua,ALT
+Spirodela intermedia,ALT
+Unknown,ALT
+Unknown,ALT
+Compsopogon caeruleus,ALT
+Salvia splendens,ALT
+Unknown,ALT
+Medicago truncatula,ALT
+Coffea canephora,ALT
+Carex littledalei,ALT
+Dendrobium nobile,ALT
+Pan troglodytes,ALT
+Unknown,ALT
+Actinidia chinensis var. chinensis,ALT
+Dianthus caryophyllus,ALT
+Apostasia shenzhenica,ALT
+Cicer arietinum,ALT
+Unknown,ALT
+Ceratopteris richardii,ALT
+Cucumis melo var. makuwa,ALT
+Capsella rubella,ALT
+Rotaria sordida,ALT
+Ensete ventricosum,ALT
+Kalanchoe fedtschenkoi,ALT
+Papaver somniferum,ALT
+Unknown,ALT
+Arabis nemorensis,ALT
+Cannabis sativa,ALT
+Unknown,ALT
+Amborella trichopoda,ALT
+Sander lucioperca,ALT
+Zea mays,ALT
+Cyclopterus lumpus,ALT
+Kwoniella bestiolae CBS 10118,ALT
+Drosophila pseudoobscura pseudoobscura,ALT
+Gouania willdenowi,ALT
+Brassica oleracea,ALT
+Coptis chinensis,ALT
+Unknown,ALT
+Cucurbita maxima,ALT
+Dacryopinax primogenitus (strain DJM 731),ALT
+Unknown,ALT
+Gadus morhua,ALT
+Lupinus albus,ALT
+[Candida] haemuloni var. vulneris,ALT
+Streblomastix strix,ALT
+Neoporphyra haitanensis,ALT
+Tetracentron sinense,ALT
+Mytilus galloprovincialis,ALT
+Sphenodon punctatus,ALT
+Mastacembelus armatus,ALT
+Apiotrichum porosum,ALT
+Rhizophora mucronata,ALT
+Vanilla planifolia,ALT
+Microbotryum intermedium,ALT
+Unknown,ALT
+Gouania willdenowi,ALT
+Unknown,ALT
+Puccinia striiformis,ALT
+Kazachstania barnettii,ALT
+Denticeps clupeoides,ALT
+Cercocebus atys,ALT
+Unknown,ALT
+Anabas testudineus,ALT
+Ascoidea rubescens DSM 1968,ALT
+Ascoidea rubescens DSM 1968,ALT
+Rotaria socialis,ALT
+Eleutherodactylus coqui,ALT
+Bubo bubo,ALT
+Sinocyclocheilus rhinocerous,ALT
+Scleropages formosus,ALT
+Scophthalmus maximus,ALT
+Heterorhabditis bacteriophora,ALT
+Unknown,ALT
+Takifugu rubripes,ALT
+Cyprinus carpio,ALT
+Crassostrea gigas,ALT
+Anabas testudineus,ALT
+Pichia sorbitophila (strain ATCC MYA-4447 / BCRC 22081 / CBS 7064 / NBRC 10061 / NRRL Y-12695),ALT
+Puccinia striiformis f. sp. tritici PST-78,ALT
+Chondrus crispus,ALT
+Unknown,ALT
+Unknown,ALT
+Unknown,ALT
+Pavo cristatus,ALT
+Microbotryum saponariae,ALT
+Tribonema minus,ALT
+Mizuhopecten yessoensis,ALT
+Pan troglodytes,ALT
+Dorcoceras hygrometricum,ALT
+Sinocyclocheilus rhinocerous,ALT
+Pan troglodytes,ALT
+Cryptococcus deuterogattii (strain R265),ALT
+Arachis hypogaea,ALT
+Lates calcarifer,ALT
+Musa balbisiana,ALT
+Kazachstania africana (strain ATCC 22294 / BCRC 22015 / CBS 2517 / CECT 1963 / NBRC 1671 / NRRL Y-8276),ALT
+Naumovozyma castellii (strain ATCC 76901 / BCRC 22586 / CBS 4309 / NBRC 1992 / NRRL Y-12630),ALT
+Unknown,ALT
+Unknown,ALT
+Albugo laibachii Nc14,ALT
+Chondrus crispus,ALT
+Aphanomyces stellatus,ALT
+Cyprinus carpio,ALT
+Ceraceosorus guamensis,ALT
+Oryzias latipes,ALT
+Eutreptiella gymnastica,ALT
+Leucosporidium creatinivorum,ALT
+Candida tenuis (strain ATCC 10573 / BCRC 21748 / CBS 615 / JCM 9827 / NBRC 10315 / NRRL Y-1498 / VKM Y-70),ALT
+Gadus morhua,ALT
+Hyphopichia burtonii NRRL Y-1933,ALT
+Salvia splendens,ALT
+Oncorhynchus tshawytscha,ALT
+Rhodosorus marinus,ALT
+Hibiscus syriacus,ALT
+Cafeteria roenbergensis,ALT
+Neogobius melanostomus,ALT
+Fundulus heteroclitus,ALT
+Prolemur simus,ALT
+Hanseniaspora osmophila,ALT
+Phytophthora sojae (strain P6497),ALT
+Myripristis murdjan,ALT
+Gossypium anomalum,ALT
+Schistocephalus solidus,ALT
+Capra hircus,ALT
+Cyprinus carpio,ALT
+Phytophthora ramorum,ALT
+Chytriomyces confervae,ALT
+Eragrostis curvula,ALT
+Unknown,ALT
+Phytophthora boehmeriae,ALT
+Phytophthora palmivora,ALT
+Amphiprion percula,ALT
+Phytophthora megakarya,ALT
+Aphanomyces invadans,ALT
+Sciurus vulgaris,ALT
+Phytophthora nicotianae P10297,ALT
+Sciurus vulgaris,ALT
+Unknown,ALT
+Trypanosoma brucei brucei (strain 927/4 GUTat10.1),ALT
+Bursaphelenchus xylophilus,ALT
+Dictyostelium purpureum,ALT
+Cyprinus carpio,ALT
+Phytophthora pseudosyringae,ALT
+[Candida] intermedia,ALT
+Callorhinus ursinus,ALT
+Saprolegnia diclina (strain VS20),ALT
+Laticauda laticaudata,ALT
+Nothobranchius korthausae,ALT
+Unknown,ALT
+Oryza nivara,ALT
+Sus scrofa,ALT
+Hucho hucho,ALT
+Unknown,ALT
+Nothobranchius rachovii,ALT
+Unknown,ALT
+Caenorhabditis auriculariae,ALT
+Unknown,ALT
+Hymenochirus boettgeri,ALT
+Unknown,ALT
+Unknown,ALT
+Oryctolagus cuniculus,ALT
+Gracilariopsis chorda,ALT
+Unknown,ALT
+Unknown,ALT
+Paramecium sonneborni,ALT
+Cyprinus carpio,ALT
+Conidiobolus coronatus (strain ATCC 28846 / CBS 209.66 / NRRL 28638),ALT
+Aureoumbra lagunensis,ALT
+Penicillium rubens (strain ATCC 28089 / DSM 1075 / NRRL 1951 / Wisconsin 54-1255),ALT
+Ursus maritimus,ALT
+Meloidogyne incognita,ALT
+Arabis nemorensis,ALT
+Unknown,ALT
+Unknown,ALT
+Unknown,ALT
+Salvia splendens,ALT
+Eutreptiella gymnastica,ALT
+Cryoendolithus antarcticus,ALT
+Neobodo designis,ALT
+Propithecus coquereli,ALT
+Chelydra serpentina,ALT
+Unknown,ALT
+Solanum chacoense,ALT
+Unknown,ALT
+Caenorhabditis brenneri,ALT
+Sus scrofa,ALT
+Unknown,ALT
+Diabrotica virgifera virgifera,ALT
+Oxytricha trifallax,ALT
+Unknown,ALT
+Sander lucioperca,ALT
+Naegleria fowleri,ALT
+Aphanomyces invadans,ALT
+Unknown,ALT
+Ephydatia muelleri,ALT
+Coregonus sp. 'balchen',ALT
+Mytilus edulis,ALT
+Penicillium chrysogenum,ALT
+Hyaloperonospora arabidopsidis (strain Emoy2),ALT
+Pavo cristatus,ALT
+Fibrocapsa japonica,ALT
+Chelydra serpentina,ALT
+Turnix velox,ALT
+Unknown,ALT
+Unknown,ALT
+Cocos nucifera,ALT
+Scleropages formosus,ALT
+Cuscuta campestris,ALT
+Bubo bubo,ALT
+Unknown,ALT
+Oryza meridionalis,ALT
+Macaca fascicularis,ALT
+Eurypyga helias,ALT
+Eschrichtius robustus,ALT
+Vicugna pacos,ALT
+Cricetulus griseus,ALT
+Sus scrofa,ALT
+Oxytricha trifallax,ALT
+Nothophytophthora sp. (strain Chile5),ALT
+Aquarana catesbeiana,ALT
+Bison bison bison,ALT
+Gossypium anomalum,ALT
+Unknown,ALT
+Dibothriocephalus latus,ALT
+Unknown,ALT
+Gorilla gorilla gorilla,ALT
+Homo sapiens,ALT
+Myotis lucifugus,ALT
+Erinaceus europaeus,ALT
+Loxodonta africana,ALT
+Salmo salar,ALT
+Nothobranchius pienaari,ALT
+Nothobranchius kadleci,ALT
+Salmo salar,ALT
+Tetraodon nigroviridis,ALT
+Unknown,ALT
+Amphimedon queenslandica,ALT
+Opisthorchis viverrini,ALT
+Schistocephalus solidus,ALT
+Anolis carolinensis,ALT
+Petromyzon marinus,ALT
+Alligator mississippiensis,ALT
+Callorhinchus milii,ALT
+Unknown,ALT
+Trichinella pseudospiralis,ALT
+Araucaria cunninghamii,ALT
+Trichinella sp. T9,ALT
+Gasterosteus aculeatus,ALT
+Unknown,ALT
+Oryza punctata,ALT
+Unknown,ALT
+Oncorhynchus mykiss,ALT
+Coemansia reversa (strain ATCC 12441 / NRRL 1564),ALT
+Heterorhabditis bacteriophora,ALT
+Unknown,ALT
+Callipepla squamata,ALT
+Unknown,ALT
+Unknown,ALT
+Unknown,ALT
+Albugo laibachii Nc14,ALT
+Unknown,ALT
+Mizuhopecten yessoensis,ALT
+Unknown,ALT
+Basidiobolus meristosporus CBS 931.73,ALT
+Candida tenuis (strain ATCC 10573 / BCRC 21748 / CBS 615 / JCM 9827 / NBRC 10315 / NRRL Y-1498 / VKM Y-70),ALT
+Unknown,ALT
+Unknown,ALT
+Cynara cardunculus var. scolymus,ALT
+Unknown,ALT
+Unknown,ALT
+Myotis davidii,ALT
+Trypanosoma brucei gambiense (strain MHOM/CI/86/DAL972),ALT
+Unknown,ALT
+Unknown,ALT
+Hesseltinella vesiculosa,ALT
+Unknown,ALT
+Trypanosoma theileri,ALT
+Trypanosoma congolense (strain IL3000),ALT
+Choanephora cucurbitarum,ALT
+Absidia repens,ALT
+Trypanosoma vivax (strain Y486),ALT
+[Candida] intermedia,ALT
+Unknown,ALT
+Bos mutus,ALT
+Unknown,ALT
+Unknown,ALT
+Cynara cardunculus var. scolymus,ALT
+Fukomys damarensis,ALT
+Unknown,ALT
+Nothobranchius rachovii,ALT
+Eurypyga helias,ALT
+Unknown,ALT
+Unknown,ALT
+Ephydatia muelleri,ALT
+Unknown,ALT
+Unknown,ALT
+Tetraodon nigroviridis,ALT
+Cricetulus griseus,ALT
+Unknown,ALT
+Unknown,ALT
+Unknown,ALT
+Unknown,ALT
+Unknown,ALT
+Unknown,ALT
+Unknown,ALT
+Unknown,ALT
+Unknown,ALT
+Unknown,ALT
+Unknown,ALT
+Moniliophthora perniciosa (strain FA553 / isolate CP02),ALT
+Branchiostoma lanceolatum,ALT
+Schmidtea mediterranea,ALT
+Schistosoma mansoni,ALT
+Unknown,ALT
+Panagrolaimus sp. JU765,ALT
+Sphaeramia orbicularis,ALT
+Cimex lectularius,ALT
+Scleropages formosus,ALT
+Steinernema glaseri,ALT
+Panagrellus redivivus,ALT
+Unknown,ALT
+Anisakis simplex,ALT
+Tegillarca granosa,ALT
+Unknown,ALT
+Spizellomyces punctatus (strain DAOM BR117),ALT
+Paramormyrops kingsleyae,ALT
+Unknown,ALT
+Pinctada fucata,ALT
+Culter alburnus,ALT
+Hyalomma excavatum,ALT
+Monodelphis domestica,ALT
+Danio rerio,ALT
+Ornithorhynchus anatinus,ALT
+Mytilus galloprovincialis,ALT
+Actinia tenebrosa,ALT
+Meloidogyne incognita,ALT
+Sarcoptes scabiei,ALT
+Unknown,ALT
+Unknown,ALT
+Unknown,ALT
+Panagrolaimus sp. PS1159,ALT
+Araneus ventricosus,ALT
+Acrobeloides nanus,ALT
+Pichia kudriavzevii,ALT
+Strongyloides stercoralis,ALT
+Mya arenaria,ALT
+Schizosaccharomyces japonicus (strain yFS275 / FY16936),ALT
+Chrysochloris asiatica,ALT
+Neoseiulus barkeri,ALT
+Ramazzottius varieornatus,ALT
+Unknown,ALT
+Romanomermis culicivorax,ALT
+Candida dubliniensis (strain CD36 / ATCC MYA-646 / CBS 7987 / NCPF 3949 / NRRL Y-17841),ALT
+Esox lucius,ALT
+Unknown,ALT
+Unknown,ALT
+Hydra vulgaris,ALT
+Octodon degus,ALT
+Dendrobium catenatum,ALT
+Unknown,ALT
+Unknown,ALT
+Drosophila busckii,ALT
+Trichechus manatus latirostris,ALT
+Cyprinus carpio,ALT
+Caulochytrium protostelioides,ALT
+Hippocampus comes,ALT
+Unknown,ALT
+Unknown,ALT
+Unknown,ALT
+Unknown,ALT
+Unknown,ALT
+Dianthus caryophyllus,ALT
+Unknown,ALT
+Chanos chanos,ALT
+Phaffia rhodozyma,ALT
+Nematostella vectensis,ALT
+Eeniella nana,ALT
+Hanseniaspora osmophila,ALT
+Unknown,ALT
+Unknown,ALT
+Cynoglossus semilaevis,ALT
+Unknown,ALT
+Neogobius melanostomus,ALT
+Unknown,ALT
+Unknown,ALT
+Myripristis murdjan,ALT
+Unknown,ALT
+Unknown,ALT
+Oryzias melastigma,ALT
+Fundulus heteroclitus,ALT
+Olea europaea subsp. europaea,ALT
+Genlisea aurea,ALT
+Cephalotus follicularis,ALT
+Trichoplax adhaerens,ALT
+Unknown,ALT
+Biomphalaria glabrata,ALT
+Ocimum basilicum,ALT
+Bursaphelenchus xylophilus,ALT
+Channa argus,ALT
+Lupinus albus,ALT
+Unknown,ALT
+Gouania willdenowi,ALT
+Lepeophtheirus salmonis,ALT
+Kingdonia uniflora,ALT
+Unknown,ALT
+Hibiscus syriacus,ALT
+Asparagus officinalis,ALT
+Musa troglodytarum,ALT
+Caligus rogercresseyi,ALT
+Dioscorea zingiberensis,ALT
+Ananas comosus,ALT
+Raphanus sativus,ALT
+Aplysia californica,ALT
+Unknown,ALT
+Arion vulgaris,ALT
+Betta splendens,ALT
+Unknown,ALT
+Unknown,ALT
+Unknown,ALT
+Eucalyptus grandis,ALT
+Cyprinus carpio,ALT
+Unknown,ALT
+Unknown,ALT
+Ixodes ricinus,ALT
+Capsella rubella,ALT
+Strongylocentrotus purpuratus,ALT
+Unknown,ALT
+Salarias fasciatus,ALT
+Gouania willdenowi,ALT
+Cyprinus carpio,ALT
+Lytechinus variegatus,ALT
+Synchytrium microbalum,ALT
+Paracentrotus lividus,ALT
+Unknown,ALT
+Labrus bergylta,ALT
+Ciona intestinalis,ALT
+Glycine soja,ALT
+Camellia sinensis,ALT
+Dendrobium nobile,ALT
+Chenopodium quinoa,ALT
+Tetraodon nigroviridis,ALT
+Arion vulgaris,ALT
+Handroanthus impetiginosus,ALT
+Gossypium raimondii,ALT
+Unknown,ALT
+Arion vulgaris,ALT
+Pisaster ochraceus,ALT
+Unknown,ALT
+Brachionus plicatilis,ALT
+Zostera marina,ALT
+Brachionus koreanus,ALT
+Bos taurus,ALT
+Nyssa sinensis,ALT
+Allomyces macrogynus (strain ATCC 38327),ALT
+Aquilegia coerulea,ALT
+Synchytrium endobioticum,ALT
+Unknown,ALT
+Unknown,ALT
+Astyanax mexicanus,ALT
+Denticeps clupeoides,ALT
+Oreochromis aureus,ALT
+Acanthamoeba castellanii (strain ATCC 30010 / Neff),ALT
+Camelus ferus,ALT
+Strigamia maritima,ALT
+Mastacembelus armatus,ALT
+Periophthalmus magnuspinnatus,ALT
+Salarias fasciatus,ALT
+Myripristis murdjan,ALT
+Diceros bicornis minor,ALT
+Dimorphilus gyrociliatus,ALT
+Salmo trutta,ALT
+Gouania willdenowi,ALT
+Capra hircus,ALT
+Scophthalmus maximus,ALT
+Unknown,ALT
+Pygocentrus nattereri,ALT
+Sparus aurata,ALT
+Sander lucioperca,ALT
+Galemys pyrenaicus,ALT
+Prolemur simus,ALT
+Unknown,ALT
+Paramecium pentaurelia,ALT
+Phytomonas sp. EM1,ALT
+Atractosteus spatula,ALT
+Rheum australe,ALT
+Phytomonas sp. Hart1,ALT
+Unknown,ALT
+Sander lucioperca,ALT
+Salarias fasciatus,ALT
+Salmo trutta,ALT
+Striga asiatica,ALT
+Bugula neritina,ALT
+Sphaeramia orbicularis,ALT
+Salarias fasciatus,ALT
+Amborella trichopoda,ALT
+Gouania willdenowi,ALT
+Chrysochromulina tobinii,ALT
+Sinocyclocheilus grahami,ALT
+Coccolithus braarudii,ALT
+Unknown,ALT
+Unknown,ALT
+Jimgerdemannia flammicorona,ALT
+Nelumbo nucifera,ALT
+Camellia sinensis,ALT
+Camelus dromedarius,ALT
+Unknown,ALT
+Necator americanus,ALT
+Gossypium barbadense,ALT
+Chromera velia CCMP2878,ALT
+Thalictrum thalictroides,ALT
+Cryptosporidium muris (strain RN66),ALT
+Attheya septentrionalis,ALT
+Esox lucius,ALT
+Unknown,ALT
+Geospiza parvula,ALT
+Vicugna pacos,ALT
+Adineta ricciae,ALT
+Vitis vinifera,ALT
+Pipistrellus kuhlii,ALT
+Nannochloropsis gaditana (strain CCMP526),ALT
+Leptotrombidium deliense,ALT
+Oncorhynchus kisutch,ALT
+Rotaria sp. Silwood1,ALT
+Unknown,ALT
+Hydatigena taeniaeformis,ALT
+Meloidogyne floridensis,ALT
+Dibothriocephalus latus,ALT
+Spermophilus dauricus,ALT
+Salvia splendens,ALT
+Gopherus evgoodei,ALT
+Calcidiscus leptoporus,ALT
+Ensete ventricosum,ALT
+Scophthalmus maximus,ALT
+Unknown,ALT
+Gopherus evgoodei,ALT
+Elysia chlorotica,ALT
+Schistocephalus solidus,ALT
+Dibothriocephalus latus,ALT
+Trichobilharzia regenti,ALT
+Syrrhaptes paradoxus,ALT
+Musa troglodytarum,ALT
+Hibiscus syriacus,ALT
+Salix viminalis,ALT
+Protopolystoma xenopodis,ALT
+Branchiostoma lanceolatum,ALT
+Schmidtea mediterranea,ALT
+Schistosoma haematobium,ALT
+Unknown,ALT
+Unknown,ALT
+Mya arenaria,ALT
+Petromyzon marinus,ALT
+Bos taurus,ALT
+Oryzias latipes,ALT
+Strongyloides stercoralis,ALT
+Poeciliopsis prolifica,ALT
+Unknown,ALT
+Unknown,ALT
+Astyanax mexicanus,ALT
+Unknown,ALT
+Unknown,ALT
+Daucus carota subsp. sativus,ALT
+Nicotiana tabacum,ALT
+Unknown,ALT
+Unknown,ALT
+Unknown,ALT
+Unknown,ALT
+Unknown,ALT
+Unknown,ALT
+Unknown,ALT
+Tetraodon nigroviridis,ALT
+Unknown,ALT
+Oncorhynchus mykiss,ALT
+Caligus rogercresseyi,ALT
+Unknown,ALT
+Betula platyphylla,ALT
+Brachionus koreanus,ALT
+Lepeophtheirus salmonis,ALT
+Zostera marina,ALT
+Pisaster ochraceus,ALT
+Gossypium raimondii,ALT
+Unknown,ALT
+Leptomonas seymouri,ALT
+Gossypium hirsutum,ALT
+Unknown,ALT
+Phytomonas sp. Hart1,ALT
+Unknown,ALT
+Unknown,ALT
+Unknown,ALT
+Amborella trichopoda,ALT
+Unknown,ALT
+Unknown,ALT
+Sarcophilus harrisii,ALT
+Aquilegia coerulea,ALT
+Picea sitchensis,ALT
+Unknown,ALT
+Unknown,ALT
+Unknown,ALT
+Unknown,ALT
+Lepisosteus oculatus,ALT
+Unknown,ALT
+Unknown,ALT
+Unknown,ALT
+Zea mays,ALT
+Unknown,ALT
+Unknown,ALT
+Unknown,ALT
+Unknown,ALT
+Unknown,ALT
+Unknown,ALT
+Cervus elaphus hippelaphus,ALT
+Unknown,ALT
+Unknown,ALT
+Unknown,ALT
+Unknown,ALT
+Unknown,ALT
+Unknown,ALT
+Unknown,ALT
+Unknown,ALT
+Denticeps clupeoides,ALT
+Leptomonas pyrrhocoris,ALT
+Leishmania braziliensis,ALT
+Porcisia hertigi,ALT
+Chondrus crispus,ALT
+Unknown,ALT
+Astyanax mexicanus,ALT
+Unknown,ALT
+Eutreptiella gymnastica,ALT
+Astyanax mexicanus,ALT
+Unknown,ALT
+Unknown,ALT

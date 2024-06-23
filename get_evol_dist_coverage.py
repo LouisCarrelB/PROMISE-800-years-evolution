@@ -427,7 +427,6 @@ if __name__ == "__main__":
 
 	df['Species'] = df['Species'].apply(capitalize_and_format)
 	
-
 	df.to_csv(output_filename, sep='\t', index=False, columns=['Species', 'Index'])
 
 	species_path =  "DATA/" + args.gid + '/Species_list_time_tree.csv'

@@ -456,23 +456,24 @@ def adding_sequence_alt(sequences_a3m,sequences_msa,all_msa, positions,exon_star
     first_sequence_msa = sequences_msa[0].seq  
     # Initialiser une variable pour stocker la séquence concaténée
     first_sequence_msa_alt = ""
-
     # Boucler à travers la liste msa_all et concaténer les premières séquences de chaque exon
     for exon_key in all_msa:
         first_sequence_msa_alt += all_msa[exon_key][0].seq
-
+    postion_to_look = find_important_positions_with_weights(sequences_msa,msa_alt_complet_alt)
+    presence_matrix_can = calculate_presence_matrix(sequences_msa,postion_to_look)
+    presence_matrix_alt = calculate_presence_matrix(msa_alt_complet_alt,postion_to_look)
+    print(presence_matrix_alt)
     for sequence_a3m in tqdm(sequences_a3m, desc="Alignement to exon alt and can"):
-        postion_to_look = find_important_positions_with_weights(sequences_msa,msa_alt_complet_alt)
-        presence_matrix_can = calculate_presence_matrix(sequences_msa,postion_to_look)
-        presence_matrix_alt = calculate_presence_matrix(msa_alt_complet_alt,postion_to_look)
+
 
         # Sélectionner la séquence entre exon_start et exon_end
         selected_sequence = take_out_dupli(sequence_a3m.seq)[exon_start - 1:exon_end]
         selected_sequence_alt = take_out_dupli(sequence_a3m.seq)[exon_start - 1: exon_start - 1+ 
                                                                  len(first_sequence_msa_alt)]
-
+       
         selected_sequence = gap_inter(first_sequence_msa,selected_sequence)
         selected_sequence_alt = gap_inter(first_sequence_msa_alt,selected_sequence_alt)
+
         # Créer un nouvel objet SeqRecord avec la séquence sélectionnée
         if len(selected_sequence) > 0: 
             percentage_gap = (selected_sequence.count("-") / len(selected_sequence)) * 100
@@ -486,6 +487,7 @@ def adding_sequence_alt(sequences_a3m,sequences_msa,all_msa, positions,exon_star
                 if A <= IDENTITY and B <= IDENTITY:
                     
                     A_real_score = calculate_sequence_score(str(selected_sequence),presence_matrix_can)
+                    
                     B_real_score = calculate_sequence_score(str(selected_sequence_alt),
                                         presence_matrix_alt)
                     ## Do it with only differential position 
@@ -510,35 +512,6 @@ def adding_sequence_alt(sequences_a3m,sequences_msa,all_msa, positions,exon_star
                     else : 
                         undecided_record = SeqRecord(selected_sequence, id=sequence_a3m.id, description=f"Evalue_A={A} Evalue_B={B} Alpha={Alpha} Beta={Beta} pA={pA} pB={pB} path=ambi")
                         undecided.append(undecided_record)
-
-    ## recalculer pA et pB :
-    postion_to_look = find_important_positions_with_weights(sequences_msa,msa_alt_complet_alt)                    
-    presence_matrix_can = calculate_presence_matrix(sequences_msa,postion_to_look)
-    presence_matrix_alt = calculate_presence_matrix(msa_alt_complet_alt,postion_to_look)
-
-    for record in sequences_msa :
-        selected_sequence = record.seq
-        A_real_score = calculate_sequence_score(str(selected_sequence), presence_matrix_can)
-        B_real_score = calculate_sequence_score(str(selected_sequence), presence_matrix_alt)
-        pA = math.exp(A_real_score/t) / (math.exp(A_real_score/t) + math.exp(B_real_score/t))
-        pB = math.exp(B_real_score/t) / (math.exp(A_real_score/t) + math.exp(B_real_score/t))
-        update_record_description(record, pA, pB)
-    
-    for record in msa_alt_complet_alt :
-        selected_sequence = record.seq
-        A_real_score = calculate_sequence_score(str(selected_sequence), presence_matrix_can)
-        B_real_score = calculate_sequence_score(str(selected_sequence), presence_matrix_alt)
-        pA = math.exp(A_real_score/t) / (math.exp(A_real_score/t) + math.exp(B_real_score/t))
-        pB = math.exp(B_real_score/t) / (math.exp(A_real_score/t) + math.exp(B_real_score/t))
-        update_record_description(record, pA, pB)
-
-    for record in undecided :
-        selected_sequence = record.seq
-        A_real_score = calculate_sequence_score(str(selected_sequence), presence_matrix_can)
-        B_real_score = calculate_sequence_score(str(selected_sequence), presence_matrix_alt)
-        pA = math.exp(A_real_score/t) / (math.exp(A_real_score/t) + math.exp(B_real_score/t))
-        pB = math.exp(B_real_score/t) / (math.exp(A_real_score/t) + math.exp(B_real_score/t))
-        update_record_description(record, pA, pB)
 
 
 
@@ -632,7 +605,7 @@ def new_borne(exon_start_init, exon_end_init, exon_alt_list):
 
 
 def process_transcript(gene_name, GAP, IDENTITY, SIGNIFICANT_DIFFERENCE,GENE, msa_directory, path_table_path, pir_file_path, dictFname, nouveau_repertoire, ASRU, 
-                       transcrit_file,query_transcrit_id,s_exon_table_path,t):
+                       transcrit_file,query_transcrit_id,s_exon_table_path,t,antoine):
     transcrit_file = pd.read_csv(GENE +'inter/a3m_to_PIR.csv')
     transcript_ids_list = transcrit_file['Transcript IDs'].tolist()
     gene_ids_list = transcrit_file['Gene IDs'].tolist()
@@ -665,7 +638,11 @@ def process_transcript(gene_name, GAP, IDENTITY, SIGNIFICANT_DIFFERENCE,GENE, ms
         matches = re.findall(r'[^/]+', identifiant)
         identifiants.extend(matches)
     ID_exons_can = set(identifiants)
-    asru_table_can, asru_table_alt = get_table_asru(ASRU, ID_exons_can)
+    if antoine == True :
+        asru_table_can, asru_table_alt = get_table_asru(ASRU, ID_exons_can)
+    else : 
+        asru_table_can = []
+        asru_table_alt = []
     list_empty = []
     asru = []
     for a3m_fichier in glob.glob(GENE + "*.a3m"):
@@ -686,7 +663,7 @@ def process_transcript(gene_name, GAP, IDENTITY, SIGNIFICANT_DIFFERENCE,GENE, ms
                         sequences_msa = list(SeqIO.parse(fichier, "fasta"))
                         (exon_start, exon_end) = gap(sequences_msa[0].seq, exon_start_init, exon_end_init)
 
-                        if exon_id in asru_table_can.values:
+                        if antoine == True and exon_id in asru_table_can.values:
 
                             print("s-exons similaires detectés",exon_id)
                             index = asru_table_can.columns[asru_table_can.isin([exon_id]).any()].tolist()
@@ -951,7 +928,7 @@ if __name__ == "__main__":
 
     #################################
     GAP = 70
-    IDENTITY = 1e-4 
+    IDENTITY = 1e-3 
     SIGNIFICANT_DIFFERENCE = 1e-5
     t= 1
     ##################################
@@ -965,6 +942,7 @@ if __name__ == "__main__":
     s_exon_table_path = GENE + "thoraxe/s_exon_table.csv"
     inter_path = GENE + "inter/"
     ases_path = GENE + "thoraxe/ases_table.csv"
+    antoine = False 
 
     transcrit_file = pd.read_csv(inter_path + 'a3m_to_PIR.csv')
  
@@ -973,7 +951,7 @@ if __name__ == "__main__":
     ########################################    
 
     exon_path, exon_similaire = process_transcript(gene_name, GAP, IDENTITY,SIGNIFICANT_DIFFERENCE, GENE, msa_directory, path_table_path, pir_file_path, 
-                       dictFname, nouveau_repertoire, ASRU, transcrit_file, query_transcrit_id,s_exon_table_path,t)
+                       dictFname, nouveau_repertoire, ASRU, transcrit_file, query_transcrit_id,s_exon_table_path,t,antoine)
      
     output_csv_path=s_exon_augmentation(nouveau_repertoire,s_exon_table_path)
 

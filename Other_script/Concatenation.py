@@ -6,8 +6,8 @@ import os
 from Bio import SeqIO
 
 
-base_path = "DATA/ENSG00000107643/New_alignement/"
-file_names = [os.path.join(base_path, f"msa_s_exon_17_{i}.fasta") for i in (1,2)]
+base_path = "DATA/100species/ENSG00000010810/thoraxe/msa/"
+file_names = [os.path.join(base_path, f"msa_s_exon_{i}.fasta") for i in ("38_18","38_19","38_20","38_21","38_22","38_23")]
 
 
 # Charger les alignements
@@ -34,7 +34,7 @@ for records in zip(*filtered_alignments):
 concatenated_alignment = MultipleSeqAlignment(concatenated_records)
 
 # Enregistrer le nouvel alignement concaténé
-AlignIO.write(concatenated_alignment, os.path.join("DATA/ENSG00000107643/New_alignement/", "combined_filtered_alt.fasta"), "fasta")
+AlignIO.write(concatenated_alignment, os.path.join("DATA/100species/ENSG00000010810/thoraxe/msa", "combined_filtered_alt.fasta"), "fasta")
 
 # def remove_first_letter(input_file, output_file):
 #     with open(input_file, "r") as infile, open(output_file, "w") as outfile:

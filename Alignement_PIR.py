@@ -12,7 +12,7 @@ def read_pir_file(file_path):
         lines = file.readlines()
     return lines
 
-def find_sequence_in_pir(sequence, pir_lines, max_distance=6):
+def find_sequence_in_pir(sequence, pir_lines, max_distance=20):
     first_identifier = []
     second_identifier = []
     found_sequences = []
