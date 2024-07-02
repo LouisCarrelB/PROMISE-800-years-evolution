@@ -916,7 +916,7 @@ def update_ases_table(dataframe_path, ases_table_path):
 if __name__ == "__main__":
 
     if len(sys.argv) > 4:
-        print("Usage: python Alignement_ESG.py <gene_name> <transcrit_id> <all>,, for the transcrit id please check DATA/gene_name/inter/a3m_to_PIR.csv")
+        print("Usage: python Alignement_ESG.py <gene_name> <transcrit_id> <all>, for the transcrit id please check DATA/gene_name/inter/a3m_to_PIR.csv")
         sys.exit(1)         
     gene_name = sys.argv[1]
     query_transcrit_id = sys.argv[2]
@@ -948,7 +948,7 @@ if __name__ == "__main__":
  
     for a3m_fichier in glob.glob(GENE +"other_data/" + "*.a3m"):
         traiter_fichier_a3m(a3m_fichier)
-    ########################################    
+    ###################################  
 
     exon_path, exon_similaire = process_transcript(gene_name, GAP, IDENTITY,SIGNIFICANT_DIFFERENCE, GENE, msa_directory, path_table_path, pir_file_path, 
                        dictFname, nouveau_repertoire, ASRU, transcrit_file, query_transcrit_id,s_exon_table_path,t,antoine)
