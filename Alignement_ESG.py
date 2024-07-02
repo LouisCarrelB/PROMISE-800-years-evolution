@@ -931,7 +931,7 @@ if __name__ == "__main__":
     IDENTITY = 1e-3 
     SIGNIFICANT_DIFFERENCE = 1e-5
     t= 1
-    ##################################
+    #################################
     GENE = "DATA/" + gene_name + "/"
     msa_directory = GENE + "thoraxe/msa/"
     path_table_path = GENE + "thoraxe/path_table.csv"
