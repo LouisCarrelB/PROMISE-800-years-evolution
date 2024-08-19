@@ -601,6 +601,49 @@ def new_borne(exon_start_init, exon_end_init, exon_alt_list):
     
     return all_msa, positions, msa_alt_complet
 
+def build_gene_dict(csv_file, target_gene_id, target_transcript_id, exon_data):
+    # Charger le CSV dans un DataFrame
+    df = pd.read_csv(csv_file)
+    
+    # Filtrer le DataFrame pour les GeneID et TranscriptIDCluster spécifiés
+    df_filtered = df[(df['GeneID'] == target_gene_id) & (df['TranscriptIDCluster'] == target_transcript_id)]
+    
+    # Assurer que exon_data est une chaîne de caractères à diviser
+    exon_list = exon_data[0].split('/')
+
+    # Retirer les éléments "start" et "stop"
+    exon_list = [exon for exon in exon_list if exon not in ['start', 'stop']]
+    
+   
+    
+    # Initialiser les variables start et end
+    start_position = 1
+    results = []
+    
+    for exon_id in exon_list:
+        matching_rows = df_filtered[df_filtered['S_exonID'] == exon_id]
+        
+        if not matching_rows.empty:
+            # Prendre la première ligne correspondante (s'il y a plusieurs lignes pour le même exon ID)
+            row = matching_rows.iloc[0]
+            
+            # Calculer le end en fonction de la longueur de la séquence protéique
+            protein_sequence = row['SubexonProteinSequence']
+            end_position = start_position + len(protein_sequence) - 1
+            
+            # Ajouter les résultats dans la liste
+            results.append({
+                'Key': exon_id,
+                'Value': {'start': start_position, 'end': end_position}
+            })
+            
+            # Mettre à jour la position de départ pour le prochain exon
+            start_position = end_position + 1
+    
+    # Convertir la liste de résultats en un dictionnaire
+    result_dict = {item['Key']: item['Value'] for item in results}
+    
+    return result_dict    
 
 
 
@@ -621,16 +664,22 @@ def process_transcript(gene_name, GAP, IDENTITY, SIGNIFICANT_DIFFERENCE,GENE, ms
     chemin_fichier = os.path.join(nouveau_repertoire, "output.txt")
 
 
+  
+    #coord = get_sexon_coord(query_gene_id, query_transcrit_id, pir_file_path)
+    #ids = get_sexon_id(dictFname)
+    #exon_coordinates_transcript = match_coordinates_and_ids(coord, ids)
+    #csv_file_path = f"DATA/{gene_name}/inter/exon_coordinates_transcript.csv"
+    #exon_coordinates_df = pd.DataFrame(list(exon_coordinates_transcript.items()), columns=['Key', 'Value'])
+    #exon_coordinates_df.to_csv(csv_file_path, index=False)
+    
+    query_exon_paths = path_table.loc[(path_table['GeneID'] == query_gene_id) & (path_table['TranscriptIDCluster'] == query_transcrit_id), 'Path'].tolist()
+    
 
-    coord = get_sexon_coord(query_gene_id, query_transcrit_id, pir_file_path)
-    ids = get_sexon_id(dictFname)
-    exon_coordinates_transcript = match_coordinates_and_ids(coord, ids)
+    exon_coordinates_transcript = build_gene_dict(s_exon_table_path, query_gene_id, query_transcrit_id, query_exon_paths)
     csv_file_path = f"DATA/{gene_name}/inter/exon_coordinates_transcript.csv"
     exon_coordinates_df = pd.DataFrame(list(exon_coordinates_transcript.items()), columns=['Key', 'Value'])
     exon_coordinates_df.to_csv(csv_file_path, index=False)
-    print(f"Les données ont été enregistrées avec succès dans {csv_file_path}")
-
-    query_exon_paths = path_table.loc[(path_table['GeneID'] == query_gene_id) & (path_table['TranscriptIDCluster'] == query_transcrit_id), 'Path'].tolist()
+    
     exons_similaire = {}
     identifiants = []
     
@@ -948,7 +997,7 @@ if __name__ == "__main__":
  
     for a3m_fichier in glob.glob(GENE +"other_data/" + "*.a3m"):
         traiter_fichier_a3m(a3m_fichier)
-    ###################################  
+    #################################
 
     exon_path, exon_similaire = process_transcript(gene_name, GAP, IDENTITY,SIGNIFICANT_DIFFERENCE, GENE, msa_directory, path_table_path, pir_file_path, 
                        dictFname, nouveau_repertoire, ASRU, transcrit_file, query_transcrit_id,s_exon_table_path,t,antoine)
