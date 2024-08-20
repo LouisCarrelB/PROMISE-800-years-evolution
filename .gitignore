@@ -6,3 +6,5 @@ ENSG00000107643/
 Results/
 rapports/
 Other_script/
+slurm-*.out
+
