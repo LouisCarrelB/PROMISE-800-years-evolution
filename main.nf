@@ -1,38 +1,36 @@
 #!/usr/bin/env nextflow
 
-params.data_dir = 'data/'  // Chemin vers vos données d'entrée
-params.result_dir = 'results/'  // Dossier pour stocker les résultats intermédiaires
+params.gene_name = 'ENSG00000107643'  // Nom du gène
+params.base_dir = '/scratch/carrelbl/Alt'  // Dossier de base
+params.gene_dir = "${params.base_dir}/${params.gene_name}"  // Dossier du gène
+params.results_dir = "${params.gene_dir}/results/"  // Dossier pour stocker les résultats
 
 process GenerateFasta {
     input:
-    path data_files from file("${params.data_dir}/*") // Fichiers d'entrée
+    path data_files from file("${params.data_dir}/*")
     output:
-    path 'fasta_files/' into fasta_output
+    path("${params.results_dir}") into fasta_output
 
     script:
     """
-    mkdir -p fasta_files
-    python3 Fasta_for_a3m.py ${data_files}
+    mkdir -p ${params.results_dir}
+    python3 Fasta_for_a3m.py ${params.gene_name} ${params.base_dir}
     """
 }
 
 process GenerateMSA {
     input:
-    path fasta_files from fasta_output.collect()
+    path fasta_files from fasta_output.collect().flatten()
     output:
-    path 'msa_results/' into msa_output
+    path("${params.gene_dir}/msa_results/") into msa_output
 
     script:
     """
-    mkdir -p msa_results
-    for fasta_file in ${fasta_files}/*.fasta; do
-        bash CF_MSAgeneration.sh $fasta_file
-    done
+    bash GenerateMSA.sh ${fasta_files} ${params.gene_dir}/msa_results/
     """
 }
 
 workflow {
     fasta_output = GenerateFasta()
     msa_output = GenerateMSA(fasta_output)
-    // Vous pouvez ajouter d'autres processus ici comme Alignement_ESG
 }
