@@ -11,4 +11,4 @@
 module load nextflow/20.10.0
 
 # Exécuter le pipeline Nextflow
-nextflow run main.nf --gene_name ENSG00000107643 --base_dir /scratch/carrelbl/Alt
+nextflow run main.nf --gene_name ENSG00000107643 --base_dir /scratch/carrelbl/
