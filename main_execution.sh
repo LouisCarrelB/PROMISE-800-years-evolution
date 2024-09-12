@@ -12,7 +12,7 @@
 
 # Charger les modules nécessaires pour Java et Nextflow
 module load linux-debian10-x86_64/openjdk-11.0.8_10-gcc-8.3.0-2qkrsqu  # Charger Java
-module load nextflow  # Charger Nextflow (si disponible en module)
+module load linux-debian10-x86_64/curl-7.76.1-gcc-8.3.0-dsz5azt
 
 # Exécuter Nextflow directement sans srun
-nextflow run main.nf --gene_name ENSG00000107643 --base_dir ../
+NXF_VER=22.10.0 nextflow run main.nf --gene_name ENSG00000107643 --base_dir ../

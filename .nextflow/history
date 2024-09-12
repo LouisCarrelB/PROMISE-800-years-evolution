@@ -1,0 +1,2 @@
+2024-09-12 15:04:44	3.6s	gloomy_cori	OK	b731b41604504527071221e637204060	8548cf4f-d2b2-4d46-a1e1-dfa67ad595b5	nextflow run main.nf --gene_name ENSG00000107643 --base_dir ../
+2024-09-12 15:09:37	2.8s	wise_meucci	OK	b731b41604504527071221e637204060	07323412-b4d3-4573-830b-f9affa91798b	nextflow run main.nf --gene_name ENSG00000107643 --base_dir ../

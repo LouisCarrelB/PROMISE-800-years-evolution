@@ -1,0 +1,5 @@
+N E X T F L O W  ~  version 22.10.0
+Launching `main.nf` [wise_meucci] DSL1 - revision: b731b41604
+WARN: Access to undefined parameter `data_dir` -- Initialise it to a default value eg. `params.data_dir = some_value`
+[-        ] process > GenerateFasta -
+

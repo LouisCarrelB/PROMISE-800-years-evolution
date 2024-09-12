@@ -11,8 +11,5 @@ process GenerateFasta {
     path("${params.results_dir}") into fasta_output
 
     script:
-    """
-    mkdir -p ${params.results_dir}
-    python3 Fasta_for_a3m.py ${params.gene_name} ${params.base_dir}
-    """
-}
+    ""
+    mk
