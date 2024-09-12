@@ -28,8 +28,49 @@ process GenerateMSA {
     bash GenerateMSA.sh ${fasta_files} ${params.gene_dir}/msa_results/
     """
 
-}
+} 
 
+process AlignMSA { 
+    input:
+    path fasta_files from fasta_output.collect().flatten()
+    output:
+    path("${params.gene_dir}/msa_results/") into msa_output
+
+    script:
+    """
+    python Alignement_ESG.py <gene_name> <transcrit_id> no FALSE
+    """
+
+}  
+
+                                       
+process CombineMSA {
+    input:
+    path msa_files from msa_output.collect().flatten()
+    output:
+    path("${params.combined_msa_dir}") into combined_msa_output
+
+    script:
+    """
+    python merge_MSASs.py ${params.results_dir} /NewMSAs
+    """
+
+} 
+
+
+
+process Redistribution {
+    input:
+    path msa_files from msa_output.collect().flatten()
+    output:
+    path("${params.combined_msa_dir}") into combined_msa_output
+
+    script:
+    """
+    python merge_MSASs.py ${params.results_dir} /NewMSAs
+    """
+
+} 
 
 
 

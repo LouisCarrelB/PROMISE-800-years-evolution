@@ -1,6 +1,7 @@
 import os
 from Bio import SeqIO
 from collections import defaultdict
+import sys
 
 def combine_msas(input_dir, output_dir):
     if not os.path.exists(output_dir):
@@ -31,6 +32,7 @@ def combine_msas(input_dir, output_dir):
     print(f"MSAs combinés et dédupliqués écrits dans : {output_dir}")
 
 if __name__ == "__main__":
-    input_directory = "MSAs/"
-    output_directory = "New_alignementv2"
+      
+    input_directory = sys.argv[1]
+    output_directory = sys.argv[2]
     combine_msas(input_directory, output_directory)

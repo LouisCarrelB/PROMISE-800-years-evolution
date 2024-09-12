@@ -602,21 +602,10 @@ def new_borne(exon_start_init, exon_end_init, exon_alt_list):
     return all_msa, positions, msa_alt_complet
 
 def build_gene_dict(csv_file, target_gene_id, target_transcript_id, exon_data):
-    # Charger le CSV dans un DataFrame
     df = pd.read_csv(csv_file)
-    
-    # Filtrer le DataFrame pour les GeneID et TranscriptIDCluster spécifiés
     df_filtered = df[(df['GeneID'] == target_gene_id) & (df['TranscriptIDCluster'] == target_transcript_id)]
-    
-    # Assurer que exon_data est une chaîne de caractères à diviser
     exon_list = exon_data[0].split('/')
-
-    # Retirer les éléments "start" et "stop"
     exon_list = [exon for exon in exon_list if exon not in ['start', 'stop']]
-    
-   
-    
-    # Initialiser les variables start et end
     start_position = 1
     results = []
     
@@ -964,15 +953,17 @@ def update_ases_table(dataframe_path, ases_table_path):
 
 if __name__ == "__main__":
 
-    if len(sys.argv) > 4:
-        print("Usage: python Alignement_ESG.py <gene_name> <transcrit_id> <all>, for the transcrit id please check DATA/gene_name/inter/a3m_to_PIR.csv")
+    if len(sys.argv) > 5:
+        print("Usage: python Alignement_ESG.py <gene_name> <transcrit_id> <all_or_no> <redistribtuin_yes_or_no>, for the transcrit id please check DATA/gene_name/inter/a3m_to_PIR.csv")
         sys.exit(1)         
     gene_name = sys.argv[1]
     query_transcrit_id = sys.argv[2]
-    if len(sys.argv) > 3 :
-         all = sys.argv[3]
-    else :
-        all = "No"
+
+    all = sys.argv[3]
+   
+
+    ANTOINE = sys.argv[4]
+
 
 
     #################################
@@ -991,7 +982,7 @@ if __name__ == "__main__":
     s_exon_table_path = GENE + "thoraxe/s_exon_table.csv"
     inter_path = GENE + "inter/"
     ases_path = GENE + "thoraxe/ases_table.csv"
-    antoine = False 
+    antoine = ANTOINE 
 
     transcrit_file = pd.read_csv(inter_path + 'a3m_to_PIR.csv')
  
