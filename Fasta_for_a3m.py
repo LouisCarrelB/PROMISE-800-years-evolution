@@ -1,3 +1,31 @@
+"""
+Script : Fasta_for_a3M.py
+Description :
+    Ce script génère des fichiers FASTA à partir des données de transcrits pour un gène donné.
+    Il est utilisé avant l'exécution de ColabFold pour préparer les alignements multiples au
+    format A3M. Le script lit deux fichiers CSV : 'path_table.csv' et 's_exon_table.csv',
+    qui contiennent des informations sur les chemins d'exons et les séquences d'exons
+    respectivement. Il génère ensuite des fichiers FASTA, où chaque fichier correspond à un
+    transcrit et contient la séquence concaténée des exons.
+
+    Fonctionnement :
+    - Pour chaque gène et transcrit, un dossier est créé dans le répertoire 'results'.
+    - Le script itère sur les exons d'un transcrit, concatène leurs séquences, et écrit le
+      tout dans un fichier FASTA.
+    - En cas de séquence manquante ou d'exon introuvable, le script ajoute une séquence
+      placeholder ('NNNN') et signale le problème.
+
+Utilisation :
+    python Fasta_for_a3m.py <gene_name>
+
+    Où <gene_name> correspond au nom du gène pour lequel les FASTA doivent être générés.
+
+Exemple :
+    python3 Fasta_for_a3m.py ENSG00000107643
+"""
+
+
+
 import os
 import sys
 import pandas as pd

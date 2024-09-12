@@ -958,10 +958,7 @@ if __name__ == "__main__":
         sys.exit(1)         
     gene_name = sys.argv[1]
     query_transcrit_id = sys.argv[2]
-
     all = sys.argv[3]
-   
-
     ANTOINE = sys.argv[4]
 
 
