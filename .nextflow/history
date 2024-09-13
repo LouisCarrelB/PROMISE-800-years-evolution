@@ -1,2 +1,6 @@
 2024-09-12 15:04:44	3.6s	gloomy_cori	OK	b731b41604504527071221e637204060	8548cf4f-d2b2-4d46-a1e1-dfa67ad595b5	nextflow run main.nf --gene_name ENSG00000107643 --base_dir ../
 2024-09-12 15:09:37	2.8s	wise_meucci	OK	b731b41604504527071221e637204060	07323412-b4d3-4573-830b-f9affa91798b	nextflow run main.nf --gene_name ENSG00000107643 --base_dir ../
+2024-09-12 15:39:41	3.3s	grave_torvalds	OK	ce70bad344d813a338ff2bc64856b85f	7c22d8d3-d4fe-46e3-8efc-993c1040fb3c	nextflow run main.nf --gene_name ENSG00000107643 --base_dir ../
+2024-09-12 16:27:59	4.5s	berserk_celsius	ERR	2e93957b089d2cc15728a219511d8671	183a0d1d-0c00-49fb-8ff1-98e597334f2f	nextflow run main.nf --gene_name ENSG00000107643 --base_dir ..
+2024-09-12 16:50:32	4s	crazy_cray	ERR	18014470e8a90a09c2df13af6b9a8968	b9d068ee-85f6-49d0-86fb-10fdee3517eb	nextflow run main.nf --gene_name ENSG00000107643 --base_dir ..
+2024-09-12 17:07:35	4s	nasty_meucci	ERR	cf82204ee541d9ba20b7bdb8c1db5a01	22e2fa47-8926-437d-b352-6f7eb68762d9	nextflow run main.nf --gene_name ENSG00000107643

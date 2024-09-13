@@ -25,68 +25,76 @@ Exemple :
 """
 
 
-
 import os
 import sys
-import pandas as pd
+import csv
 
-def generate_fasta_for_transcripts(gene_name):
-    # Define the file paths
-    GENE = f"DATA/{gene_name}/"
+def generate_fasta_for_transcripts(GENE, output_dir):
+    # Charger les tables path_table et s_exon sans Pandas
+    path_table = []
+    s_exon = {}
 
-    # Load the path_table and s_exon table
-    path_table = pd.read_csv(GENE + "thoraxe/path_table.csv")
-    s_exon = pd.read_csv(GENE + "thoraxe/s_exon_table.csv")
+    # Lire path_table.csv
+    with open(os.path.join(GENE, "thoraxe/path_table.csv"), 'r') as path_file:
+        reader = csv.DictReader(path_file)
+        for row in reader:
+            path_table.append(row)
+    
+    # Lire s_exon_table.csv
+    with open(os.path.join(GENE, "thoraxe/s_exon_table.csv"), 'r') as s_exon_file:
+        reader = csv.DictReader(s_exon_file)
+        for row in reader:
+            s_exon[row['S_exonID']] = row['S_exon_Sequence']
 
-    # Iterate over each row in the path_table
-    for index, row in path_table.iterrows():
+    # Itérer sur chaque ligne de path_table
+    for row in path_table:
         gene_id = row['GeneID']
-        transcript_id = row['TranscriptIDCluster'].replace('/', '_')  # Replace '/' with '_'
+        transcript_id = row['TranscriptIDCluster'].replace('/', '_')  # Remplacer '/' par '_'
         
-        # Create directories for the gene and transcript
-        gene_dir = os.path.join("results", gene_id)
+        # Créer des répertoires pour le gène et la transcription
+        gene_dir = os.path.join(output_dir, gene_id)
         transcript_dir = os.path.join(gene_dir, transcript_id)
-        os.makedirs(transcript_dir, exist_ok=True)
+        os.makedirs(transcript_dir, exist_ok=True)  # Crée le répertoire s'il n'existe pas
         
         fasta_filename = os.path.join(transcript_dir, 'transcript.fasta')
         
-        # Create a new FASTA file
+        # Créer un nouveau fichier FASTA
         with open(fasta_filename, 'w') as fasta_file:
-            # Write the FASTA header
+            # Écrire l'en-tête FASTA
             fasta_file.write(f">{gene_id}-{transcript_id}\n")
             
-            # Get the list of exon IDs from the Path column
+            # Obtenir la liste des ID d'exon à partir de la colonne Path
             exon_list = row['Path'].split('/')
             exon_list = [exon for exon in exon_list if exon not in ['start', 'stop'] and not exon.startswith('0_')]
             
-            # Initialize the sequence to be written to the FASTA file
+            # Initialiser la séquence à écrire dans le fichier FASTA
             final_sequence = ''
             
-            # Loop through each exon ID in the list
+            # Boucler sur chaque ID d'exon dans la liste
             for i, exon_id in enumerate(exon_list):
-                # Find the corresponding sequence in the s_exon table
-                matching_rows = s_exon[s_exon['S_exonID'] == exon_id]
+                exon_sequence = s_exon.get(exon_id)
                 
-                if not matching_rows.empty:
-                    exon_sequence = matching_rows.iloc[0]['S_exon_Sequence']
-                    if pd.notna(exon_sequence):
-                        final_sequence += exon_sequence
-                    else:
-                        # Print the position and exon ID if sequence is missing
-                        print(f"Missing sequence for Exon {exon_id} at position {i+1} in {gene_id}-{transcript_id}")
-                        final_sequence += 'NNNN'  # Add placeholder if sequence is missing
+                if exon_sequence:
+                    final_sequence += exon_sequence
                 else:
-                    # Print the position and exon ID if exon ID is not found
+                    # Ajouter un placeholder si l'exon est manquant
                     print(f"Exon {exon_id} not found at position {i+1} in {gene_id}-{transcript_id}")
-                    final_sequence += 'NNNN'  # Add placeholder if exon is not found
+                    final_sequence += 'NNNN'
             
-            # Write the concatenated sequence to the FASTA file
+            # Écrire la séquence concaténée dans le fichier FASTA
             fasta_file.write(final_sequence + '\n')
+        
+        # Créer un fichier texte 'info' contenant l'ID du FASTA
+        info_filename = os.path.join(transcript_dir, 'info.txt')
+        with open(info_filename, 'w') as info_file:
+            info_file.write(f"{gene_id}-{transcript_id}\n")
+
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print("Usage: python3 Fasta_for_a3m.py <gene_name>")
+    if len(sys.argv) != 3:
+        print("Usage: python3 Fasta_for_a3m.py <GENE_path> <output_dir>")
         sys.exit(1)
     
-    gene_name = sys.argv[1]
-    generate_fasta_for_transcripts(gene_name)
+    GENE_path = sys.argv[1]
+    output_dir = sys.argv[2]
+    generate_fasta_for_transcripts(GENE_path, output_dir)

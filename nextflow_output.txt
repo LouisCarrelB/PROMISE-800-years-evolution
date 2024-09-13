@@ -1,5 +1,57 @@
 N E X T F L O W  ~  version 22.10.0
-Launching `main.nf` [wise_meucci] DSL1 - revision: b731b41604
-WARN: Access to undefined parameter `data_dir` -- Initialise it to a default value eg. `params.data_dir = some_value`
+Launching `main.nf` [nasty_meucci] DSL1 - revision: cf82204ee5
+Base directory: /shared/home/carrell/PROMISE-800-years-evolution
 [-        ] process > GenerateFasta -
+
+[-        ] process > GenerateFasta [  0%] 0 of 1
+
+[-        ] process > GenerateFasta [  0%] 0 of 1
+Error executing process > 'GenerateFasta'
+
+Caused by:
+  File `/shared/home/carrell/PROMISE-800-years-evolution/../ENSG00000107643/results_a3m/` is outside the scope of the process work directory: /shared/home/carrell/PROMISE-800-years-evolution/work/8a/9ff324f09d092615735b762b3ca91f
+
+Command executed:
+
+  echo "Processing gene: ENSG00000107643 in directory: /shared/home/carrell/PROMISE-800-years-evolution"
+  mkdir -p /shared/home/carrell/PROMISE-800-years-evolution/../ENSG00000107643/results_a3m/  # Crée le répertoire de résultats si nécessaire
+  python3 /shared/home/carrell/PROMISE-800-years-evolution/Fasta_for_a3m.py /shared/home/carrell/PROMISE-800-years-evolution/../ENSG00000107643/data  # Passe le chemin du répertoire data comme argument
+
+Command exit status:
+  -
+
+Command output:
+  (empty)
+
+Work dir:
+  /shared/home/carrell/PROMISE-800-years-evolution/work/8a/9ff324f09d092615735b762b3ca91f
+
+Tip: you can try to figure out what's wrong by changing to the process work dir and showing the script file named `.command.sh`
+
+
+
+[8a/9ff324] process > GenerateFasta [100%] 1 of 1, failed: 1
+Error executing process > 'GenerateFasta'
+
+Caused by:
+  File `/shared/home/carrell/PROMISE-800-years-evolution/../ENSG00000107643/results_a3m/` is outside the scope of the process work directory: /shared/home/carrell/PROMISE-800-years-evolution/work/8a/9ff324f09d092615735b762b3ca91f
+
+Command executed:
+
+  echo "Processing gene: ENSG00000107643 in directory: /shared/home/carrell/PROMISE-800-years-evolution"
+  mkdir -p /shared/home/carrell/PROMISE-800-years-evolution/../ENSG00000107643/results_a3m/  # Crée le répertoire de résultats si nécessaire
+  python3 /shared/home/carrell/PROMISE-800-years-evolution/Fasta_for_a3m.py /shared/home/carrell/PROMISE-800-years-evolution/../ENSG00000107643/data  # Passe le chemin du répertoire data comme argument
+
+Command exit status:
+  -
+
+Command output:
+  (empty)
+
+Work dir:
+  /shared/home/carrell/PROMISE-800-years-evolution/work/8a/9ff324f09d092615735b762b3ca91f
+
+Tip: you can try to figure out what's wrong by changing to the process work dir and showing the script file named `.command.sh`
+
+
 
