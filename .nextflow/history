@@ -4,3 +4,14 @@
 2024-09-12 16:27:59	4.5s	berserk_celsius	ERR	2e93957b089d2cc15728a219511d8671	183a0d1d-0c00-49fb-8ff1-98e597334f2f	nextflow run main.nf --gene_name ENSG00000107643 --base_dir ..
 2024-09-12 16:50:32	4s	crazy_cray	ERR	18014470e8a90a09c2df13af6b9a8968	b9d068ee-85f6-49d0-86fb-10fdee3517eb	nextflow run main.nf --gene_name ENSG00000107643 --base_dir ..
 2024-09-12 17:07:35	4s	nasty_meucci	ERR	cf82204ee541d9ba20b7bdb8c1db5a01	22e2fa47-8926-437d-b352-6f7eb68762d9	nextflow run main.nf --gene_name ENSG00000107643
+2024-09-13 17:17:07	-	hungry_elion	-	37e58da3d250934dd43720fb8b4cf2a8	22e2fa47-8926-437d-b352-6f7eb68762d9	nextflow run /home/carrelbl/PROMISE-800-years-evolution/main.nf --gene_name ENSG00000010810 -resume
+2024-09-13 17:21:43	-	modest_linnaeus	-	37e58da3d250934dd43720fb8b4cf2a8	22e2fa47-8926-437d-b352-6f7eb68762d9	nextflow run /home/carrelbl/PROMISE-800-years-evolution/main.nf --gene_name ENSG00000010810 -resume
+2024-09-13 17:23:40	-	backstabbing_saha	-	37e58da3d250934dd43720fb8b4cf2a8	22e2fa47-8926-437d-b352-6f7eb68762d9	nextflow run /home/carrelbl/PROMISE-800-years-evolution/main.nf --gene_name ENSG00000010810 -resume
+2024-09-13 17:26:35	-	goofy_tuckerman	-	37e58da3d250934dd43720fb8b4cf2a8	22e2fa47-8926-437d-b352-6f7eb68762d9	nextflow run /home/carrelbl/PROMISE-800-years-evolution/main.nf --gene_name ENSG00000010810 -resume
+2024-09-13 17:26:55	-	confident_bhabha	-	37e58da3d250934dd43720fb8b4cf2a8	22e2fa47-8926-437d-b352-6f7eb68762d9	nextflow run /home/carrelbl/PROMISE-800-years-evolution/main.nf --gene_name ENSG00000010810 -resume
+2024-09-13 17:29:15	-	hopeful_shirley	-	37e58da3d250934dd43720fb8b4cf2a8	22e2fa47-8926-437d-b352-6f7eb68762d9	nextflow run /home/carrelbl/PROMISE-800-years-evolution/main.nf --gene_name ENSG00000010810 -resume
+2024-09-13 17:31:50	-	high_yonath	-	f3c9dc50eaef02354f216020ac0abe7a	22e2fa47-8926-437d-b352-6f7eb68762d9	nextflow run /home/carrelbl/PROMISE-800-years-evolution/main.nf --gene_name ENSG00000010810 -resume
+2024-09-13 17:32:26	-	distracted_hawking	-	fa8f441909ddc1c54974dd4d469eff3c	22e2fa47-8926-437d-b352-6f7eb68762d9	nextflow run /home/carrelbl/PROMISE-800-years-evolution/main.nf --gene_name ENSG00000010810 -resume
+2024-09-13 17:34:09	1.4s	ridiculous_darwin	ERR	549044f82c773e28fa6d3bac85199375	22e2fa47-8926-437d-b352-6f7eb68762d9	nextflow run /home/carrelbl/PROMISE-800-years-evolution/main.nf --gene_name ENSG00000010810 -resume
+2024-09-13 17:39:16	1.9s	scruffy_laplace	ERR	549044f82c773e28fa6d3bac85199375	22e2fa47-8926-437d-b352-6f7eb68762d9	nextflow run /home/carrelbl/PROMISE-800-years-evolution/main.nf --gene_name ENSG00000010810 -resume
+2024-09-13 17:40:55	-	awesome_williams	-	ad7c531f2f3390a9a12560da77288b12	22e2fa47-8926-437d-b352-6f7eb68762d9	nextflow run /home/carrelbl/PROMISE-800-years-evolution/main.nf --gene_name ENSG00000010810 -resume

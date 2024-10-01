@@ -8,7 +8,7 @@ import shutil  # Importer shutil pour copier les fichiers
 
 def main(gene_name, base_dir):
     # Définir les répertoires de base
-    gene_dir = os.path.join('/shared/home/carrell', gene_name)
+    gene_dir = os.path.join('/scratch/carrelbl/DATA/', gene_name)
     a3m_results_dir = os.path.join(gene_dir, 'msa_results')
 
     # Parcourir chaque sous-dossier de msa_results
@@ -47,13 +47,14 @@ def main(gene_name, base_dir):
                     'no',  # Mettre 'redistribtuin_yes' ou 'no' selon la logique métier
                     a3m_path
                 ]
-
                 # Exécuter la commande
                 print(f"Running Alignement_ESG.py for {transcript_id} with {a3m_file}")
+                print(Alignement_cmd)
                 result = subprocess.run(Alignement_cmd, capture_output=True, text=True)
 
                 # Vérifier s'il y a eu une erreur lors de l'exécution
                 if result.returncode != 0:
+                    print(result)
                     print(f"Error running Alignement_ESG.py for {transcript_id}:")
                     print(result.stderr)
                 else:
@@ -64,7 +65,7 @@ def main(gene_name, base_dir):
 
 if __name__ == '__main__':
     if len(sys.argv) != 3:
-        print("Usage: python3 workflow_a3m_transcript.py <gene_name> <base_dir>")
+        print("Usage: python3 workflow_alignement.py <gene_name> <base_dir>")
         sys.exit(1)
     gene_name = sys.argv[1]
     base_dir = sys.argv[2]

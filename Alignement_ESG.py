@@ -14,7 +14,6 @@ import math
 import csv 
 import tempfile
 from tqdm import tqdm 
-import requests
 import json
 import numpy as np
 from scipy.special import rel_entr
@@ -602,6 +601,29 @@ def new_borne(exon_start_init, exon_end_init, exon_alt_list):
     return all_msa, positions, msa_alt_complet
 
 def build_gene_dict(csv_file, target_gene_id, target_transcript_id, exon_data):
+    """
+        Builds a dictionary of exons for a specific gene and transcript with start and end positions 
+    based on protein sequence lengths.
+
+    Parameters:
+    -----------
+    csv_file : str
+        Path to the CSV file containing gene, transcript, and exon data.
+    target_gene_id : str
+        The ID of the gene for which to extract exon information.
+    target_transcript_id : str
+        The ID of the transcript for which to extract exon information.
+    exon_data : list or str
+        A list or string containing exon IDs in the format 'exon1/exon2/.../start/stop'.
+        The 'start' and 'stop' values are ignored during processing.
+
+    Returns:
+    --------
+    dict
+        A dictionary where keys are exon IDs and values are dictionaries with 'start' and 'end' 
+        positions for each exon. The start and end positions are calculated based on the 
+        lengths of the corresponding protein sequences.
+    """
     df = pd.read_csv(csv_file)
     df_filtered = df[(df['GeneID'] == target_gene_id) & (df['TranscriptIDCluster'] == target_transcript_id)]
     exon_list = exon_data[0].split('/')
@@ -636,15 +658,14 @@ def build_gene_dict(csv_file, target_gene_id, target_transcript_id, exon_data):
 
 
 
-def process_transcript(gene_name, GAP, IDENTITY, SIGNIFICANT_DIFFERENCE,GENE, msa_directory, path_table_path, pir_file_path, dictFname, nouveau_repertoire, ASRU, 
-                       transcrit_file,query_transcrit_id,s_exon_table_path,t,antoine,a3m_fichier):
-    transcrit_file = pd.read_csv(GENE +'inter/a3m_to_PIR.csv')
-    transcript_ids_list = transcrit_file['Transcript IDs'].tolist()
-    gene_ids_list = transcrit_file['Gene IDs'].tolist()
 
-    
-    index = transcript_ids_list.index(query_transcrit_id)
-    query_gene_id = gene_ids_list[index]
+def process_transcript(gene_name, GAP, IDENTITY, SIGNIFICANT_DIFFERENCE,GENE, msa_directory, path_table_path, pir_file_path, dictFname, nouveau_repertoire, ASRU, 
+                       query_transcrit_id_path,s_exon_table_path,t,antoine,a3m_fichier):
+    #transcrit_file = pd.read_csv(GENE +'inter/a3m_to_PIR.csv')
+    #transcript_ids_list = transcrit_file['Transcript IDs'].tolist()
+    #gene_ids_list = transcrit_file['Gene IDs'].tolist()
+
+    query_gene_id,query_transcrit_id = query_transcrit_id_path.split('-')
     path_table = pd.read_csv(path_table_path)
 
     if not os.path.exists(nouveau_repertoire):
@@ -660,12 +681,25 @@ def process_transcript(gene_name, GAP, IDENTITY, SIGNIFICANT_DIFFERENCE,GENE, ms
     #csv_file_path = f"DATA/{gene_name}/inter/exon_coordinates_transcript.csv"
     #exon_coordinates_df = pd.DataFrame(list(exon_coordinates_transcript.items()), columns=['Key', 'Value'])
     #exon_coordinates_df.to_csv(csv_file_path, index=False)
+    print(query_transcrit_id)
+    print(query_gene_id)
+    query_exon_paths = path_table.loc[(path_table['GeneID'] == query_gene_id) & (path_table['TranscriptIDCluster'] == query_transcrit_id), 'Path'].tolist()
+    if not os.path.exists(nouveau_repertoire):
+        os.makedirs(nouveau_repertoire)
+
+    chemin_fichier = os.path.join(nouveau_repertoire, "output.txt")
+
+
+
     
     query_exon_paths = path_table.loc[(path_table['GeneID'] == query_gene_id) & (path_table['TranscriptIDCluster'] == query_transcrit_id), 'Path'].tolist()
     
-
+ 
     exon_coordinates_transcript = build_gene_dict(s_exon_table_path, query_gene_id, query_transcrit_id, query_exon_paths)
-    csv_file_path = f"DATA/{gene_name}/inter/exon_coordinates_transcript.csv"
+    directory_path = os.path.join(GENE, "inter", query_transcrit_id)
+    os.makedirs(directory_path, exist_ok=True)
+    csv_file_path = os.path.join(directory_path, "exon_coordinates_transcript.csv")
+
     exon_coordinates_df = pd.DataFrame(list(exon_coordinates_transcript.items()), columns=['Key', 'Value'])
     exon_coordinates_df.to_csv(csv_file_path, index=False)
     
@@ -683,57 +717,54 @@ def process_transcript(gene_name, GAP, IDENTITY, SIGNIFICANT_DIFFERENCE,GENE, ms
         asru_table_alt = []
     list_empty = []
     asru = []
-        sequences_a3m = list(SeqIO.parse(a3m_fichier, "fasta"))[1:]
-        nbr_seq = len(sequences_a3m)
+    sequences_a3m = list(SeqIO.parse(a3m_fichier, "fasta"))[1:]
+    nbr_seq = len(sequences_a3m)
 
-        for fichier in tqdm(glob.glob(msa_directory + "msa_s_exon_*.fasta")):
-            match = re.search(r"exon_(.*?)\.fasta", fichier)
-            if match:
-                exon_id = match.group(1)
-                not_empty = verify_exon(exon_id, query_transcrit_id, s_exon_table_path)
-                if exon_id in ID_exons_can and not not_empty:
-                    list_empty.append(exon_id)
-                if exon_id in ID_exons_can and not_empty:
-                    exon_start_init = exon_coordinates_transcript[exon_id]['start']
-                    exon_end_init = exon_coordinates_transcript[exon_id]['end']
-                    sequences_msa = list(SeqIO.parse(fichier, "fasta"))
-                    (exon_start, exon_end) = gap(sequences_msa[0].seq, exon_start_init, exon_end_init)
+    for fichier in tqdm(glob.glob(msa_directory + "msa_s_exon_*.fasta")):
+        match = re.search(r"exon_(.*?)\.fasta", fichier)
+        if match:
+            exon_id = match.group(1)
+            not_empty = verify_exon(exon_id, query_transcrit_id, s_exon_table_path)
+            if exon_id in ID_exons_can and not not_empty:
+                list_empty.append(exon_id)
+            if exon_id in ID_exons_can and not_empty:
+                exon_start_init = exon_coordinates_transcript[exon_id]['start']
+                exon_end_init = exon_coordinates_transcript[exon_id]['end']
+                sequences_msa = list(SeqIO.parse(fichier, "fasta"))
+                (exon_start, exon_end) = gap(sequences_msa[0].seq, exon_start_init, exon_end_init)
 
-                    if antoine == True and exon_id in asru_table_can.values:
+                if antoine == True and exon_id in asru_table_can.values:
 
-                        print("s-exons similaires detectés",exon_id)
-                        index = asru_table_can.columns[asru_table_can.isin([exon_id]).any()].tolist()
-                        colonne_index = asru_table_can.columns[asru_table_can.isin([exon_id]).any()]
-                        # Convertir le nom de la colonne en index
-                        index = asru_table_can.columns.get_loc(colonne_index[0])
-                        # Sélectionner la colonne correspondante dans asru_table_alt
-                        exon_alt_list = asru_table_alt.iloc[:, index].tolist()
-                        L  = [exon_id,exon_alt_list]
-                        exons_similaire[exon_id] = exon_alt_list
-                        asru.append(L)
-                        all_msa, positions,msa_alt_complet = new_borne(exon_start_init, exon_end_init, exon_alt_list)
-                        adding_sequence_alt(sequences_a3m,
-                                            sequences_msa,
-                                            all_msa, positions,
-                                            exon_start,
-                                            exon_end, GAP, 
-                                            IDENTITY,
-                                            exon_id,nouveau_repertoire,nbr_seq,SIGNIFICANT_DIFFERENCE,t,msa_alt_complet)
-                        
+                    print("s-exons similaires detectés",exon_id)
+                    index = asru_table_can.columns[asru_table_can.isin([exon_id]).any()].tolist()
+                    colonne_index = asru_table_can.columns[asru_table_can.isin([exon_id]).any()]
+                    # Convertir le nom de la colonne en index
+                    index = asru_table_can.columns.get_loc(colonne_index[0])
+                    # Sélectionner la colonne correspondante dans asru_table_alt
+                    exon_alt_list = asru_table_alt.iloc[:, index].tolist()
+                    L  = [exon_id,exon_alt_list]
+                    exons_similaire[exon_id] = exon_alt_list
+                    asru.append(L)
+                    all_msa, positions,msa_alt_complet = new_borne(exon_start_init, exon_end_init, exon_alt_list)
+                    adding_sequence_alt(sequences_a3m,
+                                        sequences_msa,
+                                        all_msa, positions,
+                                        exon_start,
+                                        exon_end, GAP, 
+                                        IDENTITY,
+                                        exon_id,nouveau_repertoire,nbr_seq,SIGNIFICANT_DIFFERENCE,t,msa_alt_complet)
+                    
 
 
-                    else:
-                        adding_sequences(sequences_a3m, sequences_msa, 
-                                            exon_start, exon_end, GAP,
-                                            IDENTITY, exon_id, 
-                                            nouveau_repertoire,nbr_seq)
-
-    except ValueError as e:
-        print(f"Erreur lors de la lecture du fichier {a3m_fichier}: {e}")
+                else:
+                    adding_sequences(sequences_a3m, sequences_msa, 
+                                        exon_start, exon_end, GAP,
+                                        IDENTITY, exon_id, 
+                                        nouveau_repertoire,nbr_seq)
 
     copier_si_inexistant(msa_directory, nouveau_repertoire)
     with open(chemin_fichier, 'w') as fichier:
-        fichier.write(f"gene_name: {gene_name}\n")
+        fichier.write(f"gene_name: {query_gene_id}\n")
         fichier.write(f"query_transcrit_id: {query_transcrit_id}\n")
         fichier.write(f"GAP: {GAP}\n")
         fichier.write(f"IDENTITY: {IDENTITY}\n")
@@ -950,8 +981,8 @@ def update_ases_table(dataframe_path, ases_table_path):
 
 
 if __name__ == "__main__":
-
-    if len(sys.argv) > 5:
+    print(len(sys.argv))
+    if len(sys.argv) > 6:
         print("Usage: python Alignement_ESG.py <gene_name> <transcrit_id> <all_or_no> <redistribtuin_yes_or_no> <a3m_path>, for the transcrit id please check DATA/gene_name/inter/a3m_to_PIR.csv")
         sys.exit(1)         
     gene_name = sys.argv[1]
@@ -967,7 +998,7 @@ if __name__ == "__main__":
     SIGNIFICANT_DIFFERENCE = 1e-5
     t= 1
     #################################
-    GENE = "/shared/home/carrell/" + gene_name + "/"
+    GENE = "/scratch/carrelbl/DATA/" + gene_name + "/"
     msa_directory = GENE + "thoraxe/msa/"
     path_table_path = GENE + "thoraxe/path_table.csv"
     pir_file_path = GENE + 'thoraxe/phylosofs/transcripts.pir'
@@ -979,14 +1010,14 @@ if __name__ == "__main__":
     ases_path = GENE + "thoraxe/ases_table.csv"
     antoine = ANTOINE 
 
-    transcrit_file = pd.read_csv(inter_path + 'a3m_to_PIR.csv')
+    #transcrit_file = pd.read_csv(inter_path + 'a3m_to_PIR.csv')
  
     #for a3m_fichier in glob.glob(GENE +"other_data/" + "*.a3m"):
         #qtraiter_fichier_a3m(a3m_fichier)
     #################################
-
+    print("hello world ")
     exon_path, exon_similaire = process_transcript(gene_name, GAP, IDENTITY,SIGNIFICANT_DIFFERENCE, GENE, msa_directory, path_table_path, pir_file_path, 
-                       dictFname, nouveau_repertoire, ASRU, transcrit_file, query_transcrit_id,s_exon_table_path,t,antoine,a3m_fichier)
+                       dictFname, nouveau_repertoire, ASRU, query_transcrit_id,s_exon_table_path,t,antoine,a3m_fichier)
      
     #output_csv_path=s_exon_augmentation(nouveau_repertoire,s_exon_table_path)
 

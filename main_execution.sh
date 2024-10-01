@@ -1,21 +1,32 @@
 #!/bin/bash
-#SBATCH -p cluster             # Partition du cluster
-#SBATCH -n 1                   # Nombre de tâches (ici, 1 tâche)
-#SBATCH --cpus-per-task=4       # Nombre de cœurs (ici, 4 cœurs)
-#SBATCH --mem=16G              # Mémoire allouée (ici, 16 Go)
-#SBATCH --time=01:00:00        # Temps maximum d'exécution (1 heure)
-#SBATCH -J nextflow_job        # Nom du job
-#SBATCH -o nextflow_output.txt # Fichier de sortie standard
-#SBATCH -e nextflow_error.txt  # Fichier d'erreurs
-#SBATCH --mail-type=ALL        # Notifications par email
-#SBATCH --mail-user=ton.email@exemple.com  # Adresse email pour les notifications
+#SBATCH -p std               # Partition du cluster à utiliser (ici, 'std')
+#SBATCH -n 1                 # Nombre de tâches (ici, 1 tâche)
+#SBATCH --cpus-per-task=4    # Nombre de cœurs par tâche (ici, 4 cœurs)
+#SBATCH --mem=16G            # Mémoire allouée (ici, 16 Go)
+#SBATCH --time=24:00:00      
+#SBATCH -J nextflow_job      # Nom du job
+#SBATCH -o stdout.txt        # Fichier de sortie standard
+#SBATCH -e stderr.txt        # Fichier d'erreurs
+#SBATCH --mail-type=ALL      # Recevoir toutes les notifications par email
 
-# Charger les modules nécessaires pour Java et Nextflow
-module load linux-debian10-x86_64/openjdk-11.0.8_10-gcc-8.3.0-2qkrsqu  # Charger Java
-module load linux-debian10-x86_64/curl-7.76.1-gcc-8.3.0-dsz5azt  # Charger curl
+
+module load nextflow/24.04.4  # Charge Nextflow version 24.04.4
+module load java/22.0.2
+java -version
+nextflow -version
+
 
 # Définir l'ID du gène
 GENE_NAME="ENSG00000010810"
 
-# Exécuter Nextflow avec l'ID du gène en paramètre
-NXF_VER=22.10.0 nextflow run /shared/home/carrell/PROMISE-800-years-evolution/main.nf --gene_name $GENE_NAME -resume
+# Définir le répertoire de travail temporaire unique pour le job
+export TMPDIR=$SCRATCH/$SLURM_JOB_ID
+
+# Créer le répertoire temporaire si nécessaire
+mkdir -p $TMPDIR
+
+
+
+# Exécuter Nextflow avec l'ID du gène en paramètre, en utilisant les ressources définies
+nextflow run /home/carrelbl/PROMISE-800-years-evolution/main.nf --gene_name $GENE_NAME 
+

@@ -1,0 +1,17 @@
+SLURM job environment initialized
+Starting job
+Activating environment
+Running script
+Generating ases.txt for gene ENSG00000010810 
+Ases.txt generated successfully.
+Generating FASTA files for gene ENSG00000010810 with transcripts ENSDART00000150232, ENST00000368678/ENST00000368682/ENST00000538466...
+FASTA files generated successfully.
+Running ColabFold on generated FASTA files...
+Processing /scratch/carrelbl/DATA/ENSG00000010810/results_a3m/ENSDARG00000011370/ENSDART00000150232/transcript.fasta
+Successfully processed /scratch/carrelbl/DATA/ENSG00000010810/results_a3m/ENSDARG00000011370/ENSDART00000150232/transcript.fasta
+No info.txt found in /scratch/carrelbl/DATA/ENSG00000010810/results_a3m/ENSDARG00000011370/ENSDART00000150232
+Processing /scratch/carrelbl/DATA/ENSG00000010810/results_a3m/ENSG00000010810/ENST00000368678_ENST00000368682_ENST00000538466/transcript.fasta
+Successfully processed /scratch/carrelbl/DATA/ENSG00000010810/results_a3m/ENSG00000010810/ENST00000368678_ENST00000368682_ENST00000538466/transcript.fasta
+No info.txt found in /scratch/carrelbl/DATA/ENSG00000010810/results_a3m/ENSG00000010810/ENST00000368678_ENST00000368682_ENST00000538466
+All tasks completed successfully.
+Job finished
