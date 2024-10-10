@@ -12,6 +12,7 @@ from Bio.Align import MultipleSeqAlignment
 import os
 import subprocess
 from io import StringIO
+import sys 
 
 
 def align_msa_with_mafft(msa_records):
@@ -133,7 +134,7 @@ def find_mutually_exclusive_positions(msa1, msa2):
 
 
 
-def align_sequences_to_msas(input_file, msa1_path, msa2_path, output_dir, iterations=5):
+def align_sequences_to_msas(input_file, msa1_path, msa2_path, output_dir, iterations=1):
     # Charger les MSA
     msa1_ori = list(AlignIO.read(msa1_path, "fasta"))
     msa2_ori = list(AlignIO.read(msa2_path, "fasta"))
@@ -191,9 +192,9 @@ def align_sequences_to_msas(input_file, msa1_path, msa2_path, output_dir, iterat
         msa2 = new_msa2
 
     # Sauvegarder les nouveaux MSA et les séquences indécises
-    AlignIO.write(MultipleSeqAlignment(msa1), f"{output_dir}/can_ali_5.fasta", "fasta")
-    AlignIO.write(MultipleSeqAlignment(msa2), f"{output_dir}/alt_ali_5.fasta", "fasta")
-    SeqIO.write(undecided, f"{output_dir}/undecided_sequences_5.fasta", "fasta")
+    AlignIO.write(MultipleSeqAlignment(msa1), f"{output_dir}/can_ali.fasta", "fasta")
+    AlignIO.write(MultipleSeqAlignment(msa2), f"{output_dir}/alt_ali.fasta", "fasta")
+    SeqIO.write(undecided, f"{output_dir}/undecided_sequences.fasta", "fasta")
 
 
 def create_gene_species_dict(exon_table_path):
@@ -289,25 +290,17 @@ def find_important_positions_with_weights(msa1, msa2):
 
 
 if __name__ == "__main__":
-    input_file = "/Users/louiscarrel/Documents/Alignement_Project/largescale_kinase/DATA/ENSG00000010810/1st_transcrit_5_0/New_alignement/undecided_can.fasta"
+    input_file = sys.argv[1]
 
-
-    # 100 no thoraxe 
-    # msa1_path = "DATA/ENSG00000107643-100species/thoraxe_2/aligned_sequences/can_ali.fasta"
-    # msa2_path = "DATA/ENSG00000107643-100species/thoraxe_2/aligned_sequences/alt_ali.fasta"
-
-    # 100 thoraxe 
-    can = "DATA/100species/ENSG00000010810/thoraxe/msa/can_ali_3.fasta"
-    alt = "DATA/100species/ENSG00000010810/thoraxe/msa/alt_ali_3.fasta"
+    can = sys.argv[2]
+    alt = sys.argv[3]
 
 
 
 
 
-    output_dir = "DATA/100species/ENSG00000010810/thoraxe/msa/"
+    output_dir = sys.argv[4]
 
-
-    # Charger les MSA depuis les fichiers
     msa1 = list(AlignIO.read(can, "fasta"))
     msa2 = list(AlignIO.read(alt, "fasta"))
 

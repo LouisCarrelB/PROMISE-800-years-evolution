@@ -9,25 +9,11 @@ def compare_exons(canonical_path, alternative_path):
     canonical_exons = canonical_path.split('/')
     alternative_exons = alternative_path.split('/')
     
-    # Initialiser des listes pour les exons différents
-    different_canonical = []
-    different_alternative = []
+    # Trouver les exons exclusifs dans chaque chemin, tout en conservant l'ordre
+    exclusive_canonical = [exon for exon in canonical_exons if exon not in alternative_exons]
+    exclusive_alternative = [exon for exon in alternative_exons if exon not in canonical_exons]
     
-    # Comparer les exons, en tenant compte des longueurs différentes
-    max_length = max(len(canonical_exons), len(alternative_exons))
-    
-    for i in range(max_length):
-        # Gérer les cas où une liste est plus courte que l'autre
-        canonical_exon = canonical_exons[i] if i < len(canonical_exons) else None
-        alternative_exon = alternative_exons[i] if i < len(alternative_exons) else None
-        
-        if canonical_exon != alternative_exon:
-            if canonical_exon:
-                different_canonical.append(canonical_exon)
-            if alternative_exon:
-                different_alternative.append(alternative_exon)
-    
-    return different_canonical, different_alternative
+    return exclusive_canonical, exclusive_alternative
 
 def compare_genes(canonical_genes, alternative_genes):
     # Diviser les gènes en ID séparés par '/'
@@ -40,7 +26,7 @@ def compare_genes(canonical_genes, alternative_genes):
     
     return exclusive_to_canonical, exclusive_to_alternative
 
-def select_genes(exclusive_canonical_genes, exclusive_alternative_genes):
+def select_genes(exclusive_canonical_genes, exclusive_alternative_genes,gene_name):
     # Convertir les ensembles en listes pour pouvoir accéder aux éléments
     exclusive_canonical_genes = list(exclusive_canonical_genes)
     exclusive_alternative_genes = list(exclusive_alternative_genes)
@@ -51,17 +37,17 @@ def select_genes(exclusive_canonical_genes, exclusive_alternative_genes):
 
     # Si une des listes est vide, on prend ENSG pour la liste vide, sinon on prend le premier gène différent
     if not exclusive_canonical_genes:
-        decisive_alternative_gene = next((gene for gene in exclusive_alternative_genes if gene.startswith("ENSG")), exclusive_alternative_genes[0])
-        decisive_canonical_gene = "ENSG00000010810"
+        decisive_alternative_gene = next((gene for gene in exclusive_alternative_genes if gene.startswith("ENSG0")), exclusive_alternative_genes[0])
+        decisive_canonical_gene = gene_name
     elif not exclusive_alternative_genes:
-        decisive_canonical_gene = next((gene for gene in exclusive_canonical_genes if gene.startswith("ENSG")), exclusive_canonical_genes[0])
-        decisive_alternative_gene = "ENSG00000010810"
+        decisive_canonical_gene = next((gene for gene in exclusive_canonical_genes if gene.startswith("ENSG0")), exclusive_canonical_genes[0])
+        decisive_alternative_gene = gene_name
     
     # Si les deux listes sont remplies
     else:
         # On cherche d'abord un ENSG dans chaque liste
-        decisive_canonical_gene = next((gene for gene in exclusive_canonical_genes if gene.startswith("ENSG")), exclusive_canonical_genes[0])
-        decisive_alternative_gene = next((gene for gene in exclusive_alternative_genes if gene.startswith("ENSG")), exclusive_alternative_genes[0])
+        decisive_canonical_gene = next((gene for gene in exclusive_canonical_genes if gene.startswith("ENSG0")), exclusive_canonical_genes[0])
+        decisive_alternative_gene = next((gene for gene in exclusive_alternative_genes if gene.startswith("ENSG0")), exclusive_alternative_genes[0])
         
         # Si les deux gènes sont identiques, on choisit un gène différent pour l'Alternative
         if decisive_canonical_gene == decisive_alternative_gene:
@@ -69,7 +55,7 @@ def select_genes(exclusive_canonical_genes, exclusive_alternative_genes):
 
     return decisive_canonical_gene, decisive_alternative_gene
 
-def get_first_alternative_and_compare(path_csv, output_txt):
+def get_first_alternative_and_compare(path_csv, output_txt,gene_name):
     # Charger le fichier CSV dans un DataFrame
     df = pd.read_csv(path_csv)
     
@@ -96,7 +82,7 @@ def get_first_alternative_and_compare(path_csv, output_txt):
     exclusive_canonical_genes, exclusive_alternative_genes = compare_genes(canonical_genes, alternative_genes)
     
     # Sélectionner les gènes décisifs pour CAN et ALT
-    decisive_canonical_gene, decisive_alternative_gene = select_genes(exclusive_canonical_genes, exclusive_alternative_genes)
+    decisive_canonical_gene, decisive_alternative_gene = select_genes(exclusive_canonical_genes, exclusive_alternative_genes,gene_name)
 
     # Écrire les chemins, différences d'exons, gènes exclusifs et gènes sélectionnés dans un fichier texte
     with open(output_txt, 'w') as file:
@@ -135,6 +121,7 @@ def find_transcripts_by_paths(path_csv, ases_txt):
     alternative_path = None
     canonical_gene = None
     alternative_gene = None
+
     
     for line in lines:
         if line.startswith("CanonicalPath:"):
@@ -174,5 +161,6 @@ if __name__ == '__main__':
     path_csv = sys.argv[1] + "/thoraxe/ases_table.csv"
     path_path = sys.argv[1] + "/thoraxe/path_table.csv"
     output_txt = sys.argv[2] + "/ases.txt"
-    get_first_alternative_and_compare(path_csv, output_txt)
+    gene_name = sys.argv[3]
+    get_first_alternative_and_compare(path_csv, output_txt,gene_name)
     find_transcripts_by_paths(path_path, output_txt)

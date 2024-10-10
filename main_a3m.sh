@@ -4,19 +4,17 @@
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=16G
 #SBATCH --time=72:00:00
-#SBATCH -J generate_fasta
-#SBATCH -o stdout_a3m.txt
-#SBATCH -e stderr.a3m.txt
+#SBATCH -J mapping_$gene
+#SBATCH -o stdout_a3m_$gene.txt
+#SBATCH -e stderr_a3m_$gene.txt
 
-echo "SLURM job environment initialized"
-echo "Starting job"
+echo "Running script for a3m for gene $gene"
+python3 workflow_a3m_transcript.py $gene /home/carrelbl/PROMISE-800-years-evolution
 
-# Activate your environment if needed
-echo "Activating environment"
+echo "Running script for alignment for gene $gene"
+python3 workflow_alignement.py $gene /home/carrelbl/PROMISE-800-years-evolution
 
+echo "Running redistribution for gene $gene"
+python3 workflow_redistribution.py $gene /home/carrelbl/PROMISE-800-years-evolution
 
-# Run the Python script
-echo "Running script"
-python3 workflow_a3m_transcript.py ENSG00000010810 /home/carrelbl/PROMISE-800-years-evolution
-
-echo "Job finished"
+echo "Finished processing gene $gene"

@@ -33,7 +33,8 @@ def main(gene_name, base_dir):
         'python3',
         os.path.join(base_dir, 'get_transcripts_uniq_path.py'),
         data_dir,
-        data_dir
+        data_dir,
+        gene_name
     ]
     result = subprocess.run(ases_generation_cmd, capture_output=True, text=True)
     if result.returncode != 0:

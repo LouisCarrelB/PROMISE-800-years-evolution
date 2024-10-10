@@ -1,3 +1,0 @@
-Comparaison terminée. Résultats enregistrés dans /scratch/carrelbl/DATA/ENSG00000010810//ases.txt.
-Les résultats ont été ajoutés et écrits dans /scratch/carrelbl/DATA/ENSG00000010810//ases.txt.
-Job finished

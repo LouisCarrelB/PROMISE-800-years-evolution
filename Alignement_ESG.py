@@ -17,6 +17,7 @@ from tqdm import tqdm
 import json
 import numpy as np
 from scipy.special import rel_entr
+from Bio.Align import MultipleSeqAlignment
 
 
 def write_msa_to_temp_file(msa_object, temp_file_path, exclusive_positions):
@@ -306,26 +307,24 @@ def copier_si_inexistant(source, cible):
             shutil.copy(chemin_source, chemin_cible)
             print(f"{element} copié vers {cible}")
 
+            
 def gap(chaine, start, stop):
-    '''Ajuste les positions de début et de fin en 
-    tenant compte des gaps dans la chaîne.'''
-    tiret_indices = []
+    '''Ajuste les positions de début et de fin en tenant compte des gaps 
+    avant le premier acide aminé et après le dernier, sans considérer ceux du milieu.'''
 
-    for i in range(len(chaine)):
-        if chaine[i] == "-":
-            tiret_indices.append(i)
+    # Trouver le premier et le dernier acide aminé (non-tiret) dans la chaîne
+    first_aa_index = next(i for i, char in enumerate(chaine) if char != '-')
+    last_aa_index = len(chaine) - 1 - next(i for i, char in enumerate(reversed(chaine)) if char != '-')
 
-    for index in tiret_indices:
-        lettres_avant = chaine[:index]
-        lettres_apres = chaine[index + 1:] 
+    # Nombre de tirets avant le premier acide aminé
+    nb_tirets_avant = first_aa_index
 
-        nombre_lettres_avant = len([c for c in lettres_avant if c != "-"])
-        nombre_lettres_apres = len([c for c in lettres_apres if c != "-"])
+    # Nombre de tirets après le dernier acide aminé
+    nb_tirets_apres = len(chaine) - 1 - last_aa_index
 
-        if nombre_lettres_avant > nombre_lettres_apres:
-            stop += 1
-        elif nombre_lettres_avant < nombre_lettres_apres:
-            start -= 1
+    # Ajustement des positions start et stop
+    start -= nb_tirets_avant
+    stop -= nb_tirets_apres
 
     return start, stop
 
@@ -342,19 +341,19 @@ def calculate_identity_percentage(seq1, seq2):
     return identity_percentage
 
 
-def adding_sequences(sequences_a3m, sequences_msa, exon_start, exon_end, GAP, IDENTITY, exon_id, nouveau_repertoire,nbr_seq):
-    # Récupérer la première séquence dans sequences_msa
-    first_sequence_msa = sequences_msa[0].seq if sequences_msa else None
-    
+
+def adding_sequences(sequences_a3m, sequences_msa, exon_start, exon_end, GAP, IDENTITY, exon_id, nouveau_repertoire, nbr_seq, gene_id):
+    first_sequence_msa = None
+    for seq_record in sequences_msa:
+        if seq_record.id == gene_id:
+            first_sequence_msa = seq_record.seq
+            break
+
     for sequence_a3m in sequences_a3m:
-        # Sélectionner la séquence entre exon_start et exon_end
         selected_sequence = take_out_dupli(sequence_a3m.seq)[exon_start - 1:exon_end]
-        #modifie la séquence si gap
-        selected_sequence = gap_inter(first_sequence_msa,selected_sequence)
-        # Créer un nouvel objet SeqRecord avec la séquence sélectionnée
+        selected_sequence = gap_inter(first_sequence_msa, selected_sequence)
         if len(selected_sequence) > 0:
             percentage_gap = (selected_sequence.count("-") / len(selected_sequence)) * 100
-            # Ajouter la séquence seulement si le pourcentage de gap est inférieur à 70%
             if percentage_gap <= GAP:
                 identity_percentage = calculate_identity_percentage(first_sequence_msa, selected_sequence)
                 e_val = calculate_e_value(identity_percentage, len(first_sequence_msa), nbr_seq)
@@ -639,7 +638,7 @@ def build_gene_dict(csv_file, target_gene_id, target_transcript_id, exon_data):
             row = matching_rows.iloc[0]
             
             # Calculer le end en fonction de la longueur de la séquence protéique
-            protein_sequence = row['SubexonProteinSequence']
+            protein_sequence = row['S_exon_Sequence']
             end_position = start_position + len(protein_sequence) - 1
             
             # Ajouter les résultats dans la liste
@@ -659,36 +658,22 @@ def build_gene_dict(csv_file, target_gene_id, target_transcript_id, exon_data):
 
 
 
-def process_transcript(gene_name, GAP, IDENTITY, SIGNIFICANT_DIFFERENCE,GENE, msa_directory, path_table_path, pir_file_path, dictFname, nouveau_repertoire, ASRU, 
-                       query_transcrit_id_path,s_exon_table_path,t,antoine,a3m_fichier):
-    #transcrit_file = pd.read_csv(GENE +'inter/a3m_to_PIR.csv')
-    #transcript_ids_list = transcrit_file['Transcript IDs'].tolist()
-    #gene_ids_list = transcrit_file['Gene IDs'].tolist()
+def process_transcript(query_gene_id, GAP, IDENTITY, SIGNIFICANT_DIFFERENCE,GENE, msa_directory, path_table_path, pir_file_path, dictFname, nouveau_repertoire, ASRU, 
+                       query_transcrit_id,s_exon_table_path,t,a3m_fichier,exons_id_red):
 
-    query_gene_id,query_transcrit_id = query_transcrit_id_path.split('-')
+
+    
     path_table = pd.read_csv(path_table_path)
 
     if not os.path.exists(nouveau_repertoire):
         os.makedirs(nouveau_repertoire)
 
     chemin_fichier = os.path.join(nouveau_repertoire, "output.txt")
-
-
-  
-    #coord = get_sexon_coord(query_gene_id, query_transcrit_id, pir_file_path)
-    #ids = get_sexon_id(dictFname)
-    #exon_coordinates_transcript = match_coordinates_and_ids(coord, ids)
-    #csv_file_path = f"DATA/{gene_name}/inter/exon_coordinates_transcript.csv"
-    #exon_coordinates_df = pd.DataFrame(list(exon_coordinates_transcript.items()), columns=['Key', 'Value'])
-    #exon_coordinates_df.to_csv(csv_file_path, index=False)
-    print(query_transcrit_id)
-    print(query_gene_id)
     query_exon_paths = path_table.loc[(path_table['GeneID'] == query_gene_id) & (path_table['TranscriptIDCluster'] == query_transcrit_id), 'Path'].tolist()
     if not os.path.exists(nouveau_repertoire):
         os.makedirs(nouveau_repertoire)
 
     chemin_fichier = os.path.join(nouveau_repertoire, "output.txt")
-
 
 
     
@@ -709,17 +694,13 @@ def process_transcript(gene_name, GAP, IDENTITY, SIGNIFICANT_DIFFERENCE,GENE, ms
     for identifiant in query_exon_paths:
         matches = re.findall(r'[^/]+', identifiant)
         identifiants.extend(matches)
-    ID_exons_can = set(identifiants)
-    if antoine == True :
-        asru_table_can, asru_table_alt = get_table_asru(ASRU, ID_exons_can)
-    else : 
-        asru_table_can = []
-        asru_table_alt = []
+    ID_exons_can = set(identifiants) 
+    asru_table_can = []
+    asru_table_alt = []
     list_empty = []
     asru = []
     sequences_a3m = list(SeqIO.parse(a3m_fichier, "fasta"))[1:]
     nbr_seq = len(sequences_a3m)
-
     for fichier in tqdm(glob.glob(msa_directory + "msa_s_exon_*.fasta")):
         match = re.search(r"exon_(.*?)\.fasta", fichier)
         if match:
@@ -732,27 +713,35 @@ def process_transcript(gene_name, GAP, IDENTITY, SIGNIFICANT_DIFFERENCE,GENE, ms
                 exon_end_init = exon_coordinates_transcript[exon_id]['end']
                 sequences_msa = list(SeqIO.parse(fichier, "fasta"))
                 (exon_start, exon_end) = gap(sequences_msa[0].seq, exon_start_init, exon_end_init)
+                
+                if exon_id in exons_id_red[0] :
+                    adding_sequences(sequences_a3m, sequences_msa, 
+                                        exon_start, exon_end, GAP,
+                                        IDENTITY, exon_id, 
+                                        nouveau_repertoire,nbr_seq,query_gene_id)
+                                                        
+                            # Créer le chemin du fichier FASTA concaténé pour l'événement
+                    output_fasta = os.path.join(nouveau_repertoire, "concatenated_event.fasta")
+                    
+                    # Appeler la fonction de concaténation pour créer un fichier FASTA
+                    create_concatenated_fasta_seed(msa_directory, exons_id_red, output_fasta)
+                    sequences_msa = list(SeqIO.parse(output_fasta, "fasta"))
+                    for seq_record in sequences_msa:
+                        if seq_record.id == query_gene_id:
+                            first_sequence_msa = seq_record.seq
+                            break
+                    exon_end_final = exon_coordinates_transcript[exons_id_red[-1]]['end']
+                    # Calculer les nouvelles positions exon_start et exon_end après concaténation
+                    (exon_start, exon_end) = gap(first_sequence_msa, exon_start_init, exon_end_final)
+                    #exon_end = exon_start_init + len(first_sequence_msa) - 1
 
-                if antoine == True and exon_id in asru_table_can.values:
+                    adding_sequences(sequences_a3m,sequences_msa , 
+                                    exon_start, exon_end, GAP, IDENTITY, "EVENT", 
+                                    nouveau_repertoire, nbr_seq, query_gene_id)
 
-                    print("s-exons similaires detectés",exon_id)
-                    index = asru_table_can.columns[asru_table_can.isin([exon_id]).any()].tolist()
-                    colonne_index = asru_table_can.columns[asru_table_can.isin([exon_id]).any()]
-                    # Convertir le nom de la colonne en index
-                    index = asru_table_can.columns.get_loc(colonne_index[0])
-                    # Sélectionner la colonne correspondante dans asru_table_alt
-                    exon_alt_list = asru_table_alt.iloc[:, index].tolist()
-                    L  = [exon_id,exon_alt_list]
-                    exons_similaire[exon_id] = exon_alt_list
-                    asru.append(L)
-                    all_msa, positions,msa_alt_complet = new_borne(exon_start_init, exon_end_init, exon_alt_list)
-                    adding_sequence_alt(sequences_a3m,
-                                        sequences_msa,
-                                        all_msa, positions,
-                                        exon_start,
-                                        exon_end, GAP, 
-                                        IDENTITY,
-                                        exon_id,nouveau_repertoire,nbr_seq,SIGNIFICANT_DIFFERENCE,t,msa_alt_complet)
+            
+
+
                     
 
 
@@ -760,7 +749,7 @@ def process_transcript(gene_name, GAP, IDENTITY, SIGNIFICANT_DIFFERENCE,GENE, ms
                     adding_sequences(sequences_a3m, sequences_msa, 
                                         exon_start, exon_end, GAP,
                                         IDENTITY, exon_id, 
-                                        nouveau_repertoire,nbr_seq)
+                                        nouveau_repertoire,nbr_seq,query_gene_id)
 
     copier_si_inexistant(msa_directory, nouveau_repertoire)
     with open(chemin_fichier, 'w') as fichier:
@@ -980,21 +969,187 @@ def update_ases_table(dataframe_path, ases_table_path):
 
 
 
+
+def find_transcript_exons_and_type(ases_txt_path, transcript_id):
+    """
+    Recherche un transcrit dans le fichier ases.txt et retourne les exons associés et s'il s'agit d'un transcrit CAN ou ALT.
+    
+    Args:
+        ases_txt_path (str): Chemin vers le fichier ases.txt.
+        transcript_id (str): L'ID du transcrit à rechercher.
+    
+    Returns:
+        tuple: (path_type, exon_ids) où `path_type` est "CAN" ou "ALT" et `exon_ids` est la liste des exons associés.
+               Si le transcrit n'est pas trouvé, retourne (None, None).
+    """
+    can_transcripts = None
+    alt_transcripts = None
+    canonical_path = None
+    alternative_path = None
+    
+    try:
+        with open(ases_txt_path, 'r') as file:
+            for line in file:
+                # Recherche la ligne contenant les transcrits CAN
+                if line.startswith("transcritID_CAN :"):
+                    can_transcripts = line.split(":")[1].strip()  
+                
+                # Recherche la ligne contenant les transcrits ALT
+                elif line.startswith("transcritID_ALT :"):
+                    alt_transcripts = line.split(":")[1].strip()
+                
+                # Recherche la ligne contenant le CanonicalPath
+                elif line.startswith("CAN :"):
+                    canonical_path = line.split(":")[1].strip().split("/")  # Exons séparés par "/"
+                
+                # Recherche la ligne contenant le AlternativePath
+                elif line.startswith("ALT :"):
+                    alternative_path = line.split(":")[1].strip().split("/")  # Exons séparés par "/"
+        
+        # Vérification si le transcript_id est dans CAN ou ALT
+        if can_transcripts and transcript_id in can_transcripts:
+            return "CAN", canonical_path
+        elif alt_transcripts and transcript_id in alt_transcripts:
+            return "ALT", alternative_path
+        else:
+            return None, None  # Transcrit non trouvé
+
+    except FileNotFoundError:
+        print(f"Erreur : Le fichier {ases_txt_path} est introuvable.")
+        return None, None
+
+
+def create_concatenated_fasta_seed(msa_dir, exon_ids, output_fasta):
+    """
+    Concatène les fichiers MSA exon par exon et crée un fichier FASTA contenant les séquences concaténées.
+    
+    Args:
+        msa_dir (str): Répertoire contenant les fichiers `msa_s_exon_<exon_id>.fasta`.
+        exon_ids (list): Liste des exon_ids (chaînes).
+        output_fasta (str): Chemin complet pour le fichier FASTA de sortie.
+    
+    Returns:
+        str: Chemin du fichier FASTA concaténé.
+    """
+    # Créer les noms de fichiers en fonction des exon_ids
+    file_names = [os.path.join(msa_dir, f"msa_s_exon_{exon_id}.fasta") for exon_id in exon_ids]
+
+    # Charger les alignements pour chaque exon
+    alignments = [AlignIO.read(filename, "fasta") for filename in file_names]
+
+    # Trouver les IDs communs à tous les fichiers (alignements)
+    common_ids = set(record.id for record in alignments[0])
+    for align in alignments[1:]:
+        common_ids.intersection_update(set(record.id for record in align))
+
+    # Filtrer chaque alignement pour ne garder que les séquences avec des IDs communs
+    filtered_alignments = []
+    for align in alignments:
+        filtered = [record for record in align if record.id in common_ids]
+        filtered_alignments.append(filtered)
+
+    # Créer un nouvel alignement avec les séquences concaténées
+    concatenated_records = []
+    for records in zip(*filtered_alignments):
+        new_seq = "".join(str(record.seq) for record in records)  # Concaténer les séquences exon par exon
+        concatenated_records.append(SeqRecord(Seq(new_seq), id=records[0].id, description=""))
+
+    # Créer un objet MultipleSeqAlignment à partir des SeqRecords concaténés
+    concatenated_alignment = MultipleSeqAlignment(concatenated_records)
+
+    # Enregistrer l'alignement concaténé dans un fichier FASTA
+    AlignIO.write(concatenated_alignment, output_fasta, "fasta")
+    
+    print(f"Concatenated FASTA file created at: {output_fasta}")
+    
+    return output_fasta
+
+
+def create_concatenated_fasta(msa_dir, path_type, exon_ids, output_dir):
+    """
+    Crée un fichier FASTA nommé CAN_ori.fasta ou ALT_ori.fasta en fonction du path_type
+    qui concatène les exons_ids extraits à partir des fichiers msa_s_exon_<exon_id>.fasta.
+    Si un fichier msa_s_exon_EVENT.fasta est trouvé dans msa_dir, il est utilisé seul 
+    comme fichier de sortie.
+    
+    Args:
+        msa_dir (str): Répertoire contenant les fichiers `msa_s_exon_<exon_id>.fasta`.
+        path_type (str): Type du chemin ("CAN" ou "ALT") pour nommer le fichier de sortie.
+        exon_ids (list): Liste des exon_ids (sous la forme de chaînes).
+        output_dir (str): Répertoire où enregistrer le fichier FASTA concaténé.
+    
+    Returns:
+        str: Chemin du fichier FASTA concaténé ou EVENT.
+    """
+    # Vérifier si un fichier msa_s_exon_EVENT.fasta existe
+    event_file = os.path.join(msa_dir, "msa_s_exon_EVENT.fasta")
+    if os.path.exists(event_file):
+        # Si le fichier EVENT existe, on l'utilise directement
+        output_filename = f"{path_type}_ori.fasta"
+        output_filepath = os.path.join(output_dir, output_filename)
+        
+        # Copier le fichier EVENT comme fichier de sortie
+        alignments = AlignIO.read(event_file, "fasta")
+        AlignIO.write(alignments, output_filepath, "fasta")
+        
+        print(f"Fichier EVENT trouvé et utilisé : {output_filepath}")
+        return output_filepath
+    
+    # Si aucun fichier EVENT n'est trouvé, on continue avec les exons normaux
+    # Créer les noms de fichiers en fonction des exons_ids
+    file_names = [os.path.join(msa_dir, f"msa_s_exon_{exon_id}.fasta") for exon_id in exon_ids]
+
+    # Charger les alignements pour chaque exon
+    alignments = [AlignIO.read(filename, "fasta") for filename in file_names]
+
+    # Trouver les IDs communs à tous les fichiers (alignements)
+    common_ids = set(record.id for record in alignments[0])
+    for align in alignments[1:]:
+        common_ids.intersection_update(set(record.id for record in align))
+
+    # Filtrer chaque alignement pour ne garder que les séquences avec des IDs communs
+    filtered_alignments = []
+    for align in alignments:
+        filtered = [record for record in align if record.id in common_ids]
+        filtered_alignments.append(filtered)
+
+    # Créer un nouvel alignement avec les séquences concaténées
+    concatenated_records = []
+    for records in zip(*filtered_alignments):
+        new_seq = "".join(str(record.seq) for record in records)  # Concaténer les séquences exon par exon
+        concatenated_records.append(SeqRecord(Seq(new_seq), id=records[0].id, description=""))
+
+    # Créer un objet MultipleSeqAlignment à partir des SeqRecords
+    concatenated_alignment = MultipleSeqAlignment(concatenated_records)
+
+    # Définir le nom du fichier de sortie (CAN_ori.fasta ou ALT_ori.fasta)
+    output_filename = f"{path_type}_ori.fasta"
+    output_filepath = os.path.join(output_dir, output_filename)
+
+    # Enregistrer le nouvel alignement concaténé dans un fichier FASTA
+    AlignIO.write(concatenated_alignment, output_filepath, "fasta")
+
+    print(f"Fichier FASTA concaténé enregistré sous : {output_filepath}")
+
+    return output_filepath
+
+
 if __name__ == "__main__":
     print(len(sys.argv))
-    if len(sys.argv) > 6:
-        print("Usage: python Alignement_ESG.py <gene_name> <transcrit_id> <all_or_no> <redistribtuin_yes_or_no> <a3m_path>, for the transcrit id please check DATA/gene_name/inter/a3m_to_PIR.csv")
+    if len(sys.argv) > 7:
+        print("Usage: python Alignement_ESG.py <gene_name> <transcrit_id> <all_or_no> <redistribtuin_yes_or_no> <a3m_path>, <gene_id_query> ")
         sys.exit(1)         
     gene_name = sys.argv[1]
     query_transcrit_id = sys.argv[2]
     all = sys.argv[3]
     ANTOINE = sys.argv[4]
     a3m_fichier = sys.argv[5]
+    gene_id_query = sys.argv[6]
 
 
     #################################
     GAP = 70
-    IDENTITY = 1e-3 
+    IDENTITY = 1e-3
     SIGNIFICANT_DIFFERENCE = 1e-5
     t= 1
     #################################
@@ -1003,23 +1158,30 @@ if __name__ == "__main__":
     path_table_path = GENE + "thoraxe/path_table.csv"
     pir_file_path = GENE + 'thoraxe/phylosofs/transcripts.pir'
     dictFname = GENE + '/thoraxe/phylosofs/s_exons.tsv'
-    nouveau_repertoire = GENE + "New_alignement/" + query_transcrit_id + "/"
+    nouveau_repertoire = GENE + "New_alignement/" + query_transcrit_id.replace('/', '_') + "/"
     ASRU = GENE + f"antoine_data/{gene_name}_ASRUs_table.csv"
     s_exon_table_path = GENE + "thoraxe/s_exon_table.csv"
     inter_path = GENE + "inter/"
     ases_path = GENE + "thoraxe/ases_table.csv"
     antoine = ANTOINE 
+    ases_txt = GENE + "/ases.txt"
+    nouveau_repertoire_msa_red = GENE + "New_alignement/exclusif_paths/" 
 
-    #transcrit_file = pd.read_csv(inter_path + 'a3m_to_PIR.csv')
- 
-    #for a3m_fichier in glob.glob(GENE +"other_data/" + "*.a3m"):
-        #qtraiter_fichier_a3m(a3m_fichier)
     #################################
-    print("hello world ")
-    exon_path, exon_similaire = process_transcript(gene_name, GAP, IDENTITY,SIGNIFICANT_DIFFERENCE, GENE, msa_directory, path_table_path, pir_file_path, 
-                       dictFname, nouveau_repertoire, ASRU, query_transcrit_id,s_exon_table_path,t,antoine,a3m_fichier)
+
+    path_type, exons_id_red = find_transcript_exons_and_type(ases_txt, query_transcrit_id)
+    os.makedirs(nouveau_repertoire_msa_red, exist_ok=True)
+    
+
+
+
+    exon_path, exon_similaire = process_transcript(gene_id_query, GAP, IDENTITY,SIGNIFICANT_DIFFERENCE, GENE, msa_directory, path_table_path, pir_file_path, 
+                       dictFname, nouveau_repertoire, ASRU, query_transcrit_id,s_exon_table_path,t,a3m_fichier,exons_id_red)
      
     #output_csv_path=s_exon_augmentation(nouveau_repertoire,s_exon_table_path)
+    
+    output_fasta = create_concatenated_fasta(nouveau_repertoire, path_type, exons_id_red, nouveau_repertoire_msa_red)
+
 
     if all == "all" : 
         enrich_species_information(output_csv_path)

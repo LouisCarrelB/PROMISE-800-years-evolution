@@ -87,6 +87,15 @@ def generate_fasta_for_transcripts(GENE, output_dir, transcript_ids=None):
             # Écrire la séquence concaténée dans le fichier FASTA
             fasta_file.write(final_sequence + '\n')
 
+        info_filename = os.path.join(transcript_dir, 'info.txt')
+        transcript_id_with_dashes = transcript_id.replace('_', '/')
+        print(f"Writing info.txt for {transcript_id_with_dashes} to {info_filename}")
+
+        with open(info_filename, 'w') as info_file:
+            # Écrire l'ID du transcrit avec les tirets dans le fichier info.txt
+            info_file.write(f"GeneID: {gene_id}\n")
+            info_file.write(f"TranscriptID: {transcript_id_with_dashes}\n")
+
 if __name__ == "__main__":
     if len(sys.argv) < 3:
         print("Usage: python3 Fasta_for_a3m.py <GENE_path> <output_dir> [TranscriptIDCluster1 TranscriptIDCluster2 ...]")

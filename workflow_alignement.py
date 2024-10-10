@@ -3,7 +3,12 @@
 import os
 import sys
 import subprocess
-import shutil  # Importer shutil pour copier les fichiers
+import shutil 
+
+
+
+
+
 
 
 def main(gene_name, base_dir):
@@ -16,12 +21,18 @@ def main(gene_name, base_dir):
         for dir in dirs:
             subdir_path = os.path.join(root, dir)
             info_file = os.path.join(subdir_path, 'info.txt')
-
             # Vérifier l'existence du fichier info.txt
             if os.path.exists(info_file):
-                # Lire le fichier info.txt pour obtenir le transcript_id
+                # Lire le fichier info.txt pour obtenir le geneID et transcript_id
                 with open(info_file, 'r') as f:
-                    transcript_id = f.readline().strip()
+                    lines = f.readlines()  # Lire toutes les lignes
+                    gene_id_query = None
+                    transcript_id = None
+                    for line in lines:
+                        if line.startswith("GeneID:"):
+                            gene_id_query = line.split(":")[1].strip()  # Extraire le geneID
+                        elif line.startswith("TranscriptID:"):
+                            transcript_id = line.split(":")[1].strip()  # Extraire le transcriptID
 
                 # Chercher le fichier .a3m correspondant dans le même répertoire
                 a3m_file = None
@@ -36,7 +47,7 @@ def main(gene_name, base_dir):
 
 
                 a3m_path = a3m_file
-
+                
 
                 Alignement_cmd = [
                     'python3',
@@ -45,7 +56,9 @@ def main(gene_name, base_dir):
                     transcript_id,
                     'no',  # Mettre 'all' ou 'no' selon la logique métier
                     'no',  # Mettre 'redistribtuin_yes' ou 'no' selon la logique métier
-                    a3m_path
+                    a3m_path,
+                    gene_id_query
+                    
                 ]
                 # Exécuter la commande
                 print(f"Running Alignement_ESG.py for {transcript_id} with {a3m_file}")
@@ -57,8 +70,10 @@ def main(gene_name, base_dir):
                     print(result)
                     print(f"Error running Alignement_ESG.py for {transcript_id}:")
                     print(result.stderr)
+                    print(result.stdout)  
                 else:
                     print(f"Successfully processed {transcript_id}")
+                    print(result.stdout) 
 
             else:
                 print(f"info.txt not found in {subdir_path}")
